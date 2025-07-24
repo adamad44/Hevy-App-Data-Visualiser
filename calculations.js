@@ -1,4 +1,4 @@
-import { workouts } from "./parser.js";
+import { listOfExercises, workouts } from "./parser.js";
 
 export function getHighestWeightPR(exerciseObj) {
 	let highestWeight = 0;
@@ -10,6 +10,109 @@ export function getHighestWeightPR(exerciseObj) {
 	});
 
 	return highestWeight;
+}
+
+export function getAvgWorkoutDuration() {
+	if (!workouts || workouts.length === 0) return 0;
+
+	let totalDuration = 0;
+	let validSessions = 0;
+
+	workouts.forEach((workout) => {
+		const start = new Date(workout[0].start_time);
+		const end = new Date(workout[0].end_time);
+
+		if (!isNaN(start) && !isNaN(end)) {
+			const durationMinutes = (end - start) / (1000 * 60);
+			if (durationMinutes > 0) {
+				totalDuration += durationMinutes;
+				validSessions++;
+			}
+		}
+	});
+
+	if (validSessions === 0) return 0;
+
+	const averageDuration = totalDuration / validSessions;
+	return Math.round(averageDuration);
+}
+
+export function getAvgRepRange() {
+	let allReps = [];
+	if (!workouts || workouts.length === 0) return 0;
+	workouts.forEach((workout) => {
+		workout.forEach((set) => {
+			allReps.push(Number(set.reps));
+		});
+	});
+
+	const totalReps = allReps.reduce((sum, reps) => sum + reps, 0);
+	const avgReps = totalReps / allReps.length;
+	return Math.round(avgReps);
+}
+
+export function getAvgTimeBetweenWorkouts() {
+	if (!workouts || workouts.length <= 1) return 0;
+
+	const workoutDates = workouts.map(
+		(workout) => new Date(workout[0].start_time)
+	);
+
+	// Sort dates to ensure chronological order
+	workoutDates.sort((a, b) => a - b);
+
+	let totalDaysBetween = 0;
+	let validIntervals = 0;
+
+	for (let i = 1; i < workoutDates.length; i++) {
+		const currentDate = workoutDates[i];
+		const previousDate = workoutDates[i - 1];
+
+		if (!isNaN(currentDate) && !isNaN(previousDate)) {
+			const daysBetween = (currentDate - previousDate) / (1000 * 60 * 60 * 24);
+			if (daysBetween > 0) {
+				totalDaysBetween += daysBetween;
+				validIntervals++;
+			}
+		}
+	}
+
+	if (validIntervals === 0) return 0;
+
+	const averageDays = totalDaysBetween / validIntervals;
+	return Math.round(averageDays * 10) / 10;
+}
+
+export function getMostImprovedExercise() {
+	let highestImprovementPercent = 0;
+	let mostImprovedName = "";
+
+	Object.keys(listOfExercises).forEach((exName) => {
+		const hist = get1RMHistory(exName);
+
+		// Only consider exercises with at least 10 sets performed
+		const totalSets = listOfExercises[exName].history.length;
+		if (totalSets < 10) return;
+
+		// Sort history chronologically by date (oldest first)
+		hist.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+		if (hist.length > 1) {
+			const firstWeight = hist[0].weight;
+			const lastWeight = hist[hist.length - 1].weight;
+
+			if (firstWeight > 0) {
+				const improvementPercent = ((lastWeight - firstWeight) / firstWeight) * 100;
+
+				if (improvementPercent > highestImprovementPercent) {
+					highestImprovementPercent = improvementPercent;
+					mostImprovedName = exName;
+				}
+			}
+		}
+	});
+
+	return mostImprovedName;
 }
 
 export function getExerciseWeightsHistory(ExerciseName) {

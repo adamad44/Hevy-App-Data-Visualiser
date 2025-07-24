@@ -2,6 +2,10 @@ import {
 	getExerciseWeightsHistory,
 	get1RMHistory,
 	getExerciseSessionVolumeHistory,
+	getAvgWorkoutDuration,
+	getAvgRepRange,
+	getAvgTimeBetweenWorkouts,
+	getMostImprovedExercise,
 } from "./calculations.js";
 
 export let workouts = [];
@@ -31,9 +35,28 @@ export function onCSVParsed(results) {
 
 		listOfExercises[row.exercise_title].history.push(row);
 	});
-	console.log(get1RMHistory("Chest Press (Machine)"));
+	const stats = [
+		{ label: "Workout count", value: workouts.length },
+		{
+			label: "Avg workout duration",
+			value: `${getAvgWorkoutDuration()} minutes`,
+		},
+		{ label: "Avg reps per set", value: getAvgRepRange() },
+		{
+			label: "Avg time between workouts",
+			value: `${getAvgTimeBetweenWorkouts()} days`,
+		},
+		{
+			label: "Most improved exercise",
+			value: getMostImprovedExercise(),
+		},
+	];
 
-	const workoutCountElement = document.createElement("p");
-	workoutCountElement.textContent = `Workout count: ${workouts.length}`;
-	document.body.appendChild(workoutCountElement);
+	const accountStatsElement = document.querySelector("#account-stats-container");
+
+	stats.forEach((stat) => {
+		const p = document.createElement("p");
+		p.textContent = `${stat.label}: ${stat.value}`;
+		accountStatsElement.appendChild(p);
+	});
 }
