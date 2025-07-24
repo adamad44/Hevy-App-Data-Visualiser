@@ -53,6 +53,64 @@ function getExerciseWeightsHistory(ExerciseName) {
 	return weightHistory;
 }
 
+function estimate1RM(weight, reps) {
+	if (reps <= 1) return weight;
+	return weight * (1 + reps / 30);
+}
+
+function get1RMHistory(exerciseName) {
+	let history1RM = [];
+
+	let highest1RM = 0;
+	let date = "";
+	workouts.forEach((workout) => {
+		date = "";
+		highest1RM = 0;
+		workout.forEach((set) => {
+			if (set.exercise_title === exerciseName && set.set_type !== "warmup") {
+				const currentSet1RM = estimate1RM(set.weight_kg, set.reps);
+				if (currentSet1RM > highest1RM) highest1RM = currentSet1RM;
+				date = set.start_time;
+			}
+		});
+
+		if (date.trim() !== "" && highest1RM !== 0) {
+			const rounded1RM = isNaN(highest1RM)
+				? 0
+				: Number(parseFloat(highest1RM).toFixed(2));
+
+			history1RM.push({
+				weight: rounded1RM,
+				date: String(date),
+			});
+		}
+	});
+	return history1RM;
+}
+
+function getExerciseSessionVolumeHistory(exerciseName) {
+	let volHistory = [];
+
+	workouts.forEach((workout) => {
+		let cumulativeVolForSession = 0;
+		let date = "";
+		workout.forEach((set) => {
+			if (set.exercise_title === exerciseName && set.set_type !== "warmup") {
+				cumulativeVolForSession += set.weight_kg * set.reps;
+				date = set.start_time;
+			}
+		});
+
+		if (date.trim() !== "" && cumulativeVolForSession !== 0) {
+			volHistory.push({
+				weight: cumulativeVolForSession,
+				date: String(date),
+			});
+		}
+	});
+	return volHistory;
+}
+
 function onCSVParsed(results) {
 	const rows = results.data;
 	let temp = [];
@@ -78,6 +136,8 @@ function onCSVParsed(results) {
 		listOfExercises[row.exercise_title].history.push(row);
 	});
 	// console.log(getExerciseWeightsHistory("Bench Press (Barbell)"));
+	// console.log(get1RMHistory("Bench Press (Barbell)"));
+	// console.log(getExerciseSessionVolumeHistory("Bench Press (Barbell)"));
 
 	const workoutCountElement = document.createElement("p");
 	workoutCountElement.textContent = `Workout count: ${workouts.length}`;
