@@ -1,21 +1,6 @@
-const fileInput = document.querySelector("#file-upload");
+import { workouts } from "./parser.js";
 
-fileInput.addEventListener("change", handleFileUpload);
-
-function handleFileUpload(e) {
-	const file = e.target.files[0];
-	if (!file || !file.name.toLowerCase().endsWith(".csv")) return;
-
-	Papa.parse(file, {
-		header: true,
-		skipEmptyLines: true,
-		complete: onCSVParsed,
-	});
-}
-let workouts = [];
-let listOfExercises = {};
-
-function getHighestWeightPR(exerciseObj) {
+export function getHighestWeightPR(exerciseObj) {
 	let highestWeight = 0;
 
 	exerciseObj.history.forEach((entry) => {
@@ -27,7 +12,7 @@ function getHighestWeightPR(exerciseObj) {
 	return highestWeight;
 }
 
-function getExerciseWeightsHistory(ExerciseName) {
+export function getExerciseWeightsHistory(ExerciseName) {
 	let weightHistory = [];
 
 	let highestWeight = 0;
@@ -53,12 +38,12 @@ function getExerciseWeightsHistory(ExerciseName) {
 	return weightHistory;
 }
 
-function estimate1RM(weight, reps) {
+export function estimate1RM(weight, reps) {
 	if (reps <= 1) return weight;
 	return weight * (1 + reps / 30);
 }
 
-function get1RMHistory(exerciseName) {
+export function get1RMHistory(exerciseName) {
 	let history1RM = [];
 
 	let highest1RM = 0;
@@ -88,7 +73,7 @@ function get1RMHistory(exerciseName) {
 	return history1RM;
 }
 
-function getExerciseSessionVolumeHistory(exerciseName) {
+export function getExerciseSessionVolumeHistory(exerciseName) {
 	let volHistory = [];
 
 	workouts.forEach((workout) => {
@@ -109,37 +94,4 @@ function getExerciseSessionVolumeHistory(exerciseName) {
 		}
 	});
 	return volHistory;
-}
-
-function onCSVParsed(results) {
-	const rows = results.data;
-	let temp = [];
-
-	rows.forEach((row, index) => {
-		temp.push(row);
-
-		if (
-			index === rows.length - 1 ||
-			row.start_time !== rows[index + 1].start_time
-		) {
-			workouts.push([...temp]);
-			temp = [];
-		}
-
-		if (!(row.exercise_title in listOfExercises)) {
-			listOfExercises[row.exercise_title] = {
-				name: row.exercise_title,
-				history: [],
-			};
-		}
-
-		listOfExercises[row.exercise_title].history.push(row);
-	});
-	// console.log(getExerciseWeightsHistory("Bench Press (Barbell)"));
-	// console.log(get1RMHistory("Bench Press (Barbell)"));
-	// console.log(getExerciseSessionVolumeHistory("Bench Press (Barbell)"));
-
-	const workoutCountElement = document.createElement("p");
-	workoutCountElement.textContent = `Workout count: ${workouts.length}`;
-	document.body.appendChild(workoutCountElement);
 }
