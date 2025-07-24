@@ -15,7 +15,7 @@ function handleFileUpload(e) {
 let workouts = [];
 let listOfExercises = {};
 
-function getHighestWeight(exerciseObj) {
+function getHighestWeightPR(exerciseObj) {
 	let highestWeight = 0;
 
 	exerciseObj.history.forEach((entry) => {
@@ -25,6 +25,32 @@ function getHighestWeight(exerciseObj) {
 	});
 
 	return highestWeight;
+}
+
+function getExerciseWeightsHistory(ExerciseName) {
+	let weightHistory = [];
+
+	let highestWeight = 0;
+	let date = "";
+	workouts.forEach((workout) => {
+		date = "";
+		highestWeight = 0;
+		workout.forEach((set) => {
+			if (set.exercise_title === ExerciseName && set.set_type !== "warmup") {
+				if (set.weight_kg > highestWeight) highestWeight = Number(set.weight_kg);
+				date = set.start_time;
+			}
+		});
+
+		if (date.trim() !== "" && highestWeight !== 0) {
+			weightHistory.push({
+				weight: highestWeight,
+				date: date,
+			});
+		}
+	});
+
+	return weightHistory;
 }
 
 function onCSVParsed(results) {
@@ -51,6 +77,7 @@ function onCSVParsed(results) {
 
 		listOfExercises[row.exercise_title].history.push(row);
 	});
+	// console.log(getExerciseWeightsHistory("Bench Press (Barbell)"));
 
 	const workoutCountElement = document.createElement("p");
 	workoutCountElement.textContent = `Workout count: ${workouts.length}`;
