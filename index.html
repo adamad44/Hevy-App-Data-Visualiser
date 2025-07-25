@@ -4,20 +4,33 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Hevy visualise</title>
-		<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+		<!-- <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" /> -->
 		<link rel="stylesheet" href="styles.css" />
 		<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	</head>
 	<body>
 		<h1>Upload your Hevy export file to get started</h1>
 		<input type="file" accept=".csv" name="file-upload" id="file-upload" />
+		
+		
 		<script type="module" src="main.js"></script>
-
+		
 		<div
-			style="border: 1px solid rgb(49, 49, 49); text-align: center"
-			id="account-stats-container"
+		style="border: 1px solid rgb(49, 49, 49); text-align: center"
+		id="account-stats-container"
 		>
-			<h2 style="margin-top: 10px;"">Basic Stats</h2>
-		</div>
+		<h2 style="margin-top: 10px;"">Basic Stats</h2>
+	</div>
+	
+	<div id="exercise-selector-container" style="display: none; margin: 20px 0;">
+		<label for="exercise-select">View 1RM history:</label>
+		<select id="exercise-select">
+			<option value="">Choose an exercise...</option>
+		</select>
+	</div>
+		<div id="charts-container"></div>
+
+		<script type="module" src="charts.js"></script>
 	</body>
 </html>

@@ -90,11 +90,9 @@ export function getMostImprovedExercise() {
 	Object.keys(listOfExercises).forEach((exName) => {
 		const hist = get1RMHistory(exName);
 
-		// Only consider exercises with at least 10 sets performed
 		const totalSets = listOfExercises[exName].history.length;
 		if (totalSets < 10) return;
 
-		// Sort history chronologically by date (oldest first)
 		hist.sort((a, b) => new Date(a.date) - new Date(b.date));
 
 		if (hist.length > 1) {
