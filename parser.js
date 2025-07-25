@@ -6,9 +6,16 @@ import {
 	getAvgRepRange,
 	getAvgTimeBetweenWorkouts,
 	getMostImprovedExercise,
+	getAvgRepRangeList,
+	getTimesOfDays,
 } from "./calculations.js";
 
-import { render1RMCharts } from "./charts.js";
+import {
+	render1RMCharts,
+	renderHeaviestWeightCharts,
+	renderWorkoutTimeBarChart,
+	renderRepsCharts,
+} from "./charts.js";
 
 export let listOfExerciseNames = [];
 export let workouts = [];
@@ -69,6 +76,7 @@ export function onCSVParsed(results) {
 		p.textContent = `${stat.label}: ${stat.value}`;
 		accountStatsElement.appendChild(p);
 	});
+	renderWorkoutTimeBarChart();
 }
 
 function populateExerciseDropdown() {
@@ -94,5 +102,8 @@ function handleExerciseSelection(event) {
 		chartsContainer.innerHTML = "";
 
 		render1RMCharts(selectedExercise);
+		renderHeaviestWeightCharts(selectedExercise);
+		renderRepsCharts(selectedExercise);
+		renderWorkoutTimeBarChart();
 	}
 }

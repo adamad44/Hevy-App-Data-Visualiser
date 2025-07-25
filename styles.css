@@ -1,9 +1,8 @@
-/* --- General Body and Typography --- */
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 		"Helvetica Neue", Arial, sans-serif;
-	background-color: #121212; /* Dark background */
-	color: #e0e0e0; /* Light text color */
+	background-color: #121212;
+	color: #e0e0e0;
 	line-height: 1.6;
 	margin: 0;
 	padding: 2rem;
@@ -31,7 +30,6 @@ h2 {
 	margin-top: 2rem;
 }
 
-/* --- File Uploader --- */
 #file-upload {
 	display: block;
 	margin: 2rem auto;
@@ -49,7 +47,6 @@ h2 {
 	border-color: #3b82f6;
 }
 
-/* --- Containers --- */
 #account-stats-container,
 #exercise-selector-container {
 	background-color: #1e1e1e;
@@ -85,12 +82,11 @@ h2 {
 	border-radius: 12px;
 	padding: 1.5rem;
 	margin-bottom: 2rem;
-	height: auto; /* Allow height to be determined by content */
-	min-height: 450px; /* Ensure a minimum height for visibility */
+	height: auto;
+	min-height: 450px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Dropdown / Select Menu --- */
 #exercise-selector-container label {
 	display: block;
 	margin-bottom: 1rem;
@@ -109,17 +105,16 @@ h2 {
 	background-color: #121212;
 	color: #e0e0e0;
 	cursor: pointer;
-	-webkit-appearance: none; /* Removes default browser styling */
+	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
 	background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
 	background-position: right 1rem center;
 	background-size: 0.8em;
-	padding-right: 2.5rem; /* Space for the arrow */
+	padding-right: 2.5rem;
 }
 
-/* --- Chart Styling --- */
 .chart-1rm {
 	position: relative;
 	width: 100%;

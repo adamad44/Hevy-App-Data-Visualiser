@@ -12,6 +12,15 @@ export function getHighestWeightPR(exerciseObj) {
 	return highestWeight;
 }
 
+export function getTimesOfDays() {
+	let times = [];
+	workouts.forEach((workout) => {
+		times.push(workout[0].start_time);
+	});
+
+	return times;
+}
+
 export function getAvgWorkoutDuration() {
 	if (!workouts || workouts.length === 0) return 0;
 
@@ -49,6 +58,22 @@ export function getAvgRepRange() {
 	const totalReps = allReps.reduce((sum, reps) => sum + reps, 0);
 	const avgReps = totalReps / allReps.length;
 	return Math.round(avgReps);
+}
+
+export function getAvgRepRangeList(exName) {
+	let allReps = [];
+	if (!workouts || workouts.length === 0) return 0;
+	workouts.forEach((workout) => {
+		workout.forEach((set) => {
+			if (set.exercise_title === exName && set.set_type === "failure") {
+				allReps.push({
+					reps: Number(set.reps),
+					date: set.start_time,
+				});
+			}
+		});
+	});
+	return allReps;
 }
 
 export function getAvgTimeBetweenWorkouts() {
