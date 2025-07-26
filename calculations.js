@@ -1,4 +1,4 @@
-import { listOfExercises, workouts } from "./parser.js";
+import { listOfExerciseNames, listOfExercises, workouts } from "./parser.js";
 
 export function getHighestWeightPR(exerciseObj) {
 	let highestWeight = 0;
@@ -197,6 +197,45 @@ export function get1RMHistory(exerciseName) {
 		}
 	});
 	return history1RM;
+}
+
+export function getTotalVolume() {
+	let totalVolume = 0;
+	workouts.forEach((workout) => {
+		workout.forEach((set) => {
+			const setWeight = Number(set.weight_kg);
+			if (setWeight && setWeight !== NaN) {
+				totalVolume += Math.round(setWeight);
+			}
+		});
+	});
+	return totalVolume;
+}
+
+export function getMostCommonExercise() {
+	let listOfSetExercises = [];
+	let maxCount = {
+		name: "",
+		count: 0,
+	};
+	workouts.forEach((workout) => {
+		workout.forEach((set) => {
+			listOfSetExercises.push(set.exercise_title);
+		});
+	});
+
+	listOfExerciseNames.forEach((exercise) => {
+		const count = listOfSetExercises.filter((item) => item === exercise).length;
+
+		if (count > Number(maxCount.count)) {
+			maxCount = {
+				name: exercise,
+				count: Number(count),
+			};
+		}
+	});
+
+	return maxCount.name;
 }
 
 export function getExerciseSessionVolumeHistory(exerciseName) {

@@ -8,6 +8,8 @@ import {
 	getMostImprovedExercise,
 	getAvgRepRangeList,
 	getTimesOfDays,
+	getTotalVolume,
+	getMostCommonExercise,
 } from "./calculations.js";
 
 import {
@@ -45,7 +47,7 @@ export function onCSVParsed(results) {
 
 		listOfExercises[row.exercise_title].history.push(row);
 	});
-
+	listOfExerciseNames = Object.keys(listOfExercises);
 	const stats = [
 		{ label: "Workout count", value: workouts.length },
 		{
@@ -61,9 +63,15 @@ export function onCSVParsed(results) {
 			label: "Most improved exercise",
 			value: getMostImprovedExercise(),
 		},
+		{
+			label: "Total volume",
+			value: `${getTotalVolume()} KG`,
+		},
+		{
+			label: "Most common exercise",
+			value: `${getMostCommonExercise()}`,
+		},
 	];
-
-	listOfExerciseNames = Object.keys(listOfExercises);
 
 	populateExerciseDropdown();
 
