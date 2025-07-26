@@ -1,4 +1,4 @@
-# 📈 Hevy CSV Visualizer (Open Source)
+# 📈 Hevy CSV Visualizer
 
 **A simple, client-side web app to graph and analyze your workouts using exported data from the [Hevy App](https://www.hevyapp.com/).**  
 No login, no servers, no API keys — just upload your CSV and instantly get insights.
