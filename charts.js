@@ -10,6 +10,7 @@ import {
 	getExerciseSessionVolumeHistory,
 	getAvgRepRangeList,
 	getTimesOfDays,
+	calculateMovingAverage,
 } from "./calculations.js";
 
 export async function render1RMCharts(exerciseName) {
@@ -23,26 +24,7 @@ export async function render1RMCharts(exerciseName) {
 		weights.push(obj.weight);
 	});
 
-	// Calculate line of best fit
-	function calculateLinearRegression(x, y) {
-		const n = x.length;
-		const sumX = x.reduce((a, b) => a + b, 0);
-		const sumY = y.reduce((a, b) => a + b, 0);
-		const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
-		const sumXX = x.reduce((acc, xi) => acc + xi * xi, 0);
-
-		const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-		const intercept = (sumY - slope * sumX) / n;
-
-		return { slope, intercept };
-	}
-
-	// Convert dates to numeric values for regression calculation
-	const numericX = dates.map((_, index) => index);
-	const { slope, intercept } = calculateLinearRegression(numericX, weights);
-
-	// Generate trend line data
-	const trendLineData = numericX.map((x) => slope * x + intercept);
+	const movingAverageData = calculateMovingAverage(weights, 10);
 
 	const chartContainer = document.createElement("div");
 	chartContainer.className = "chart-container";
@@ -73,16 +55,15 @@ export async function render1RMCharts(exerciseName) {
 					tension: 0.2,
 				},
 				{
-					label: "Trend",
-					data: trendLineData,
+					label: "Moving Average",
+					data: movingAverageData,
 					borderColor: "#ef4444",
 					backgroundColor: "transparent",
 					borderWidth: 2,
-					borderDash: [5, 5],
 					fill: false,
-					tension: 0,
+					tension: 0.3,
 					pointRadius: 0,
-					pointHoverRadius: 0,
+					pointHoverRadius: 4,
 				},
 			],
 		},
@@ -170,26 +151,7 @@ export async function renderHeaviestWeightCharts(exerciseName) {
 		weights.push(obj.weight);
 	});
 
-	// Calculate line of best fit
-	function calculateLinearRegression(x, y) {
-		const n = x.length;
-		const sumX = x.reduce((a, b) => a + b, 0);
-		const sumY = y.reduce((a, b) => a + b, 0);
-		const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
-		const sumXX = x.reduce((acc, xi) => acc + xi * xi, 0);
-
-		const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-		const intercept = (sumY - slope * sumX) / n;
-
-		return { slope, intercept };
-	}
-
-	// Convert dates to numeric values for regression calculation
-	const numericX = dates.map((_, index) => index);
-	const { slope, intercept } = calculateLinearRegression(numericX, weights);
-
-	// Generate trend line data
-	const trendLineData = numericX.map((x) => slope * x + intercept);
+	const movingAverageData = calculateMovingAverage(weights, 10);
 
 	const chartContainer = document.createElement("div");
 	chartContainer.className = "chart-container";
@@ -220,16 +182,15 @@ export async function renderHeaviestWeightCharts(exerciseName) {
 					tension: 0.2,
 				},
 				{
-					label: "Trend",
-					data: trendLineData,
+					label: "Moving Average",
+					data: movingAverageData,
 					borderColor: "#ef4444",
 					backgroundColor: "transparent",
 					borderWidth: 2,
-					borderDash: [5, 5],
 					fill: false,
-					tension: 0,
+					tension: 0.3,
 					pointRadius: 0,
-					pointHoverRadius: 0,
+					pointHoverRadius: 4,
 				},
 			],
 		},
@@ -317,26 +278,7 @@ export async function renderRepsCharts(exerciseName) {
 		reps.push(obj.reps);
 	});
 
-	// Calculate line of best fit
-	function calculateLinearRegression(x, y) {
-		const n = x.length;
-		const sumX = x.reduce((a, b) => a + b, 0);
-		const sumY = y.reduce((a, b) => a + b, 0);
-		const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
-		const sumXX = x.reduce((acc, xi) => acc + xi * xi, 0);
-
-		const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-		const intercept = (sumY - slope * sumX) / n;
-
-		return { slope, intercept };
-	}
-
-	// Convert dates to numeric values for regression calculation
-	const numericX = dates.map((_, index) => index);
-	const { slope, intercept } = calculateLinearRegression(numericX, reps);
-
-	// Generate trend line data
-	const trendLineData = numericX.map((x) => slope * x + intercept);
+	const movingAverageData = calculateMovingAverage(reps, 20);
 
 	const chartContainer = document.createElement("div");
 	chartContainer.className = "chart-container";
@@ -367,16 +309,15 @@ export async function renderRepsCharts(exerciseName) {
 					tension: 0.2,
 				},
 				{
-					label: "Trend",
-					data: trendLineData,
+					label: "Moving Average",
+					data: movingAverageData,
 					borderColor: "#ef4444",
 					backgroundColor: "transparent",
 					borderWidth: 2,
-					borderDash: [5, 5], // Dashed line
 					fill: false,
-					tension: 0,
-					pointRadius: 0, // Hide points on trend line
-					pointHoverRadius: 0,
+					tension: 0.3,
+					pointRadius: 0,
+					pointHoverRadius: 4,
 				},
 			],
 		},
@@ -395,7 +336,7 @@ export async function renderRepsCharts(exerciseName) {
 					padding: 20,
 				},
 				legend: {
-					display: true, // Changed to show legend for trend line
+					display: true,
 					labels: {
 						color: "#ffffffff",
 						font: {

@@ -83,7 +83,6 @@ export function getAvgTimeBetweenWorkouts() {
 		(workout) => new Date(workout[0].start_time)
 	);
 
-	// Sort dates to ensure chronological order
 	workoutDates.sort((a, b) => a - b);
 
 	let totalDaysBetween = 0;
@@ -259,4 +258,18 @@ export function getExerciseSessionVolumeHistory(exerciseName) {
 		}
 	});
 	return volHistory;
+}
+
+export function calculateMovingAverage(data, windowSize = 5) {
+	const movingAverages = [];
+
+	for (let i = 0; i < data.length; i++) {
+		const start = Math.max(0, i - Math.floor(windowSize / 2));
+		const end = Math.min(data.length, i + Math.ceil(windowSize / 2));
+		const window = data.slice(start, end);
+		const average = window.reduce((sum, val) => sum + val, 0) / window.length;
+		movingAverages.push(average);
+	}
+
+	return movingAverages;
 }
