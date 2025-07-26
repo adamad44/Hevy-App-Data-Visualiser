@@ -65,7 +65,7 @@ export function onCSVParsed(results) {
 		},
 		{
 			label: "Total volume",
-			value: `${getTotalVolume()} KG`,
+			value: `${getTotalVolume().toLocaleString()} KG`,
 		},
 		{
 			label: "Most common exercise",
