@@ -65,7 +65,7 @@ export function getAvgRepRangeList(exName) {
 	if (!workouts || workouts.length === 0) return 0;
 	workouts.forEach((workout) => {
 		workout.forEach((set) => {
-			if (set.exercise_title === exName && set.set_type === "failure") {
+			if (set.exercise_title === exName && set.set_type !== "warmup") {
 				allReps.push({
 					reps: Number(set.reps),
 					date: set.start_time,
