@@ -202,7 +202,7 @@ export function getTotalVolume() {
 	let totalVolume = 0;
 	workouts.forEach((workout) => {
 		workout.forEach((set) => {
-			const setWeight = Number(set.weight_kg);
+			const setWeight = Number(set.weight_kg * set.reps);
 			if (setWeight && setWeight !== NaN) {
 				totalVolume += Math.round(setWeight);
 			}
