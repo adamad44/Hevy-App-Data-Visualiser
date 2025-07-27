@@ -84,6 +84,8 @@ export function onCSVParsed(results) {
 	populateExerciseDropdown();
 
 	document.getElementById("exercise-selector-container").style.display = "block";
+	document.getElementById("time-period-selector-container").style.display =
+		"block";
 
 	const accountStatsElement = document.querySelector("#account-stats-container");
 
@@ -99,6 +101,7 @@ export function onCSVParsed(results) {
 
 function populateExerciseDropdown() {
 	const select = document.getElementById("exercise-select");
+	const selectTime = document.getElementById("time-select");
 
 	select.innerHTML = '<option value="">Choose an exercise...</option>';
 
@@ -109,19 +112,21 @@ function populateExerciseDropdown() {
 		select.appendChild(option);
 	});
 
+	selectTime.addEventListener("change", handleExerciseSelection);
 	select.addEventListener("change", handleExerciseSelection);
 }
 
 function handleExerciseSelection(event) {
-	const selectedExercise = event.target.value;
+	const selectedExercise = document.getElementById("exercise-select").value;
+	const selectedTimeFrame = document.getElementById("time-select").value;
 
-	if (selectedExercise) {
+	if (selectedExercise && selectedTimeFrame) {
 		const chartsContainer = document.getElementById("charts-container");
 		chartsContainer.innerHTML = "";
 
-		render1RMCharts(selectedExercise);
-		renderHeaviestWeightCharts(selectedExercise);
-		renderRepsCharts(selectedExercise);
+		render1RMCharts(selectedExercise, selectedTimeFrame);
+		renderHeaviestWeightCharts(selectedExercise, selectedTimeFrame);
+		renderRepsCharts(selectedExercise, selectedTimeFrame);
 		renderWorkoutTimeBarChart();
 		renderWorkoutDayOfWeekBarChart();
 		renderVolumeChart();

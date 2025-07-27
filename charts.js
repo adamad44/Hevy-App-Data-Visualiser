@@ -15,9 +15,24 @@ import {
 } from "./calculations.js";
 import { workouts } from "./parser.js";
 
-export async function render1RMCharts(exerciseName) {
-	const history = get1RMHistory(exerciseName);
+export async function render1RMCharts(exerciseName, timeFrame) {
+	let selectedFrame = "all time";
+	let history = get1RMHistory(exerciseName);
 	history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+	if (timeFrame !== "all") {
+		const today = new Date();
+		let startDate;
+		if (timeFrame === "90") {
+			selectedFrame = "past 90 days";
+			startDate = new Date(today.setDate(today.getDate() - 90));
+		} else if (timeFrame === "365") {
+			selectedFrame = "past year";
+			startDate = new Date(today.setDate(today.getDate() - 365));
+		}
+		history = history.filter((item) => new Date(item.date) >= startDate);
+	}
+
 	let dates = [];
 	let weights = [];
 
@@ -44,10 +59,10 @@ export async function render1RMCharts(exerciseName) {
 
 	const maxIndex = weights.indexOf(Math.max(...weights));
 	const pointBackgroundColors = weights.map((_, i) =>
-		i === maxIndex ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
+		i === maxIndex && timeFrame === "all" ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
 	);
 	const pointBorderColors = weights.map((_, i) =>
-		i === maxIndex ? "#ef4444" : "#0b70ebff"
+		i === maxIndex && timeFrame === "all" ? "#ef4444" : "#0b70ebff"
 	);
 
 	new Chart(ctx, {
@@ -85,7 +100,7 @@ export async function render1RMCharts(exerciseName) {
 			plugins: {
 				title: {
 					display: true,
-					text: `1RM Progress for ${exerciseName}`,
+					text: `1RM Progress for ${exerciseName} (${selectedFrame})`,
 					font: {
 						size: 18,
 						weight: "bold",
@@ -152,12 +167,27 @@ export async function render1RMCharts(exerciseName) {
 	});
 }
 
-export async function renderHeaviestWeightCharts(exerciseName) {
-	const history = getExerciseWeightsHistory(exerciseName);
+export async function renderHeaviestWeightCharts(exerciseName, timeFrame) {
+	let selectedFrame = "all time";
+	const historyRaw = getExerciseWeightsHistory(exerciseName);
+	let history = [...historyRaw];
 	history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+	if (timeFrame !== "all") {
+		const today = new Date();
+		let startDate;
+		if (timeFrame === "90") {
+			selectedFrame = "past 90 days";
+			startDate = new Date(today.setDate(today.getDate() - 90));
+		} else if (timeFrame === "365") {
+			selectedFrame = "past year";
+			startDate = new Date(today.setDate(today.getDate() - 365));
+		}
+		history = history.filter((item) => new Date(item.date) >= startDate);
+	}
+
 	let dates = [];
 	let weights = [];
-
 	history.forEach((obj) => {
 		dates.push(obj.date);
 		weights.push(obj.weight);
@@ -181,10 +211,10 @@ export async function renderHeaviestWeightCharts(exerciseName) {
 
 	const maxIndex = weights.indexOf(Math.max(...weights));
 	const pointBackgroundColors = weights.map((_, i) =>
-		i === maxIndex ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
+		i === maxIndex && timeFrame === "all" ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
 	);
 	const pointBorderColors = weights.map((_, i) =>
-		i === maxIndex ? "#ef4444" : "#0b70ebff"
+		i === maxIndex && timeFrame === "all" ? "#ef4444" : "#0b70ebff"
 	);
 
 	new Chart(ctx, {
@@ -222,7 +252,7 @@ export async function renderHeaviestWeightCharts(exerciseName) {
 			plugins: {
 				title: {
 					display: true,
-					text: `Weight Progress for ${exerciseName}`,
+					text: `Weight Progress for ${exerciseName} (${selectedFrame})`,
 					font: {
 						size: 18,
 						weight: "bold",
@@ -289,12 +319,27 @@ export async function renderHeaviestWeightCharts(exerciseName) {
 	});
 }
 
-export async function renderRepsCharts(exerciseName) {
-	const history = getAvgRepRangeList(exerciseName);
+export async function renderRepsCharts(exerciseName, timeFrame) {
+	let selectedFrame = "all time";
+	const historyRaw = getAvgRepRangeList(exerciseName);
+	let history = [...historyRaw];
 	history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+	if (timeFrame !== "all") {
+		const today = new Date();
+		let startDate;
+		if (timeFrame === "90") {
+			selectedFrame = "past 90 days";
+			startDate = new Date(today.setDate(today.getDate() - 90));
+		} else if (timeFrame === "365") {
+			selectedFrame = "past year";
+			startDate = new Date(today.setDate(today.getDate() - 365));
+		}
+		history = history.filter((item) => new Date(item.date) >= startDate);
+	}
+
 	let dates = [];
 	let reps = [];
-
 	history.forEach((obj) => {
 		dates.push(obj.date);
 		reps.push(obj.reps);
@@ -349,7 +394,7 @@ export async function renderRepsCharts(exerciseName) {
 			plugins: {
 				title: {
 					display: true,
-					text: `reps/set for ${exerciseName}`,
+					text: `reps/set for ${exerciseName} (${selectedFrame})`,
 					font: {
 						size: 18,
 						weight: "bold",
@@ -473,7 +518,7 @@ export async function renderWorkoutTimeBarChart() {
 			plugins: {
 				title: {
 					display: true,
-					text: "Workout Frequency by Hour",
+					text: `Workout Frequency by Hour`,
 					font: { size: 18, weight: "bold" },
 					color: "#ffffffff",
 					padding: 20,

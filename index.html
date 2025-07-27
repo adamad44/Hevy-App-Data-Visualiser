@@ -29,6 +29,15 @@
 			<option value="">Choose an exercise...</option>
 		</select>
 	</div>
+
+	<div id="time-period-selector-container" style="display: none; margin: 20px 0;">
+		<label for="time-select">Select time period:</label>
+		<select id="time-select">
+			<option value="all">All time</option>
+						<option value="90">Past 90 days</option>
+						<option value="365">Past year</option>
+		</select>
+	</div>
 		<div id="charts-container"></div>
 
 		<script type="module" src="charts.js"></script>

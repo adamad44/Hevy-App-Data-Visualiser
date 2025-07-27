@@ -48,7 +48,8 @@ h2 {
 }
 
 #account-stats-container,
-#exercise-selector-container {
+#exercise-selector-container,
+#time-period-selector-container {
 	background-color: #1e1e1e;
 	border: 1px solid #2d2d2d;
 	border-radius: 12px;
@@ -87,7 +88,8 @@ h2 {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-#exercise-selector-container label {
+#exercise-selector-container label,
+#time-period-selector-container label {
 	display: block;
 	margin-bottom: 1rem;
 	font-size: 1.2rem;
@@ -95,6 +97,7 @@ h2 {
 	color: #ffffff;
 }
 
+#time-select,
 #exercise-select {
 	padding: 0.8rem 1rem;
 	font-size: 1rem;
