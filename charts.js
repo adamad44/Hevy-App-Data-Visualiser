@@ -42,6 +42,14 @@ export async function render1RMCharts(exerciseName) {
 
 	const ctx = document.getElementById(`chart-${exerciseName}`);
 
+	const maxIndex = weights.indexOf(Math.max(...weights));
+	const pointBackgroundColors = weights.map((_, i) =>
+		i === maxIndex ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
+	);
+	const pointBorderColors = weights.map((_, i) =>
+		i === maxIndex ? "#ef4444" : "#0b70ebff"
+	);
+
 	new Chart(ctx, {
 		type: "line",
 		data: {
@@ -52,6 +60,8 @@ export async function render1RMCharts(exerciseName) {
 					data: weights,
 					borderColor: "#3b82f6",
 					backgroundColor: "rgba(59, 130, 246, 0.1)",
+					pointBackgroundColor: pointBackgroundColors,
+					pointBorderColor: pointBorderColors,
 					borderWidth: 2,
 					fill: true,
 					tension: 0.2,
@@ -169,6 +179,14 @@ export async function renderHeaviestWeightCharts(exerciseName) {
 
 	const ctx = document.getElementById(`chart-weight-${exerciseName}`);
 
+	const maxIndex = weights.indexOf(Math.max(...weights));
+	const pointBackgroundColors = weights.map((_, i) =>
+		i === maxIndex ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
+	);
+	const pointBorderColors = weights.map((_, i) =>
+		i === maxIndex ? "#ef4444" : "#0b70ebff"
+	);
+
 	new Chart(ctx, {
 		type: "line",
 		data: {
@@ -179,6 +197,8 @@ export async function renderHeaviestWeightCharts(exerciseName) {
 					data: weights,
 					borderColor: "#3b82f6",
 					backgroundColor: "rgba(59, 130, 246, 0.1)",
+					pointBackgroundColor: pointBackgroundColors,
+					pointBorderColor: pointBorderColors,
 					borderWidth: 2,
 					fill: true,
 					tension: 0.2,
@@ -436,7 +456,12 @@ export async function renderWorkoutTimeBarChart() {
 				{
 					label: "Number of Workouts",
 					data: hourCounts,
-					backgroundColor: "rgba(59, 130, 246, 0.5)",
+					backgroundColor: hourCounts.map(
+						(count, i) =>
+							i === hourCounts.indexOf(Math.max(...hourCounts))
+								? "rgba(239, 68, 68, 0.8)" // highlight color (red)
+								: "rgba(59, 130, 246, 0.5)" // default color (blue)
+					),
 					borderColor: "#3b82f6",
 					borderWidth: 1,
 				},
@@ -674,7 +699,12 @@ export async function renderWorkoutDayOfWeekBarChart() {
 				{
 					label: "Number of Workouts",
 					data: workoutCounts,
-					backgroundColor: "rgba(59, 130, 246, 0.5)",
+					backgroundColor: workoutCounts.map(
+						(count, i) =>
+							i === workoutCounts.indexOf(Math.max(...workoutCounts))
+								? "rgba(239, 68, 68, 0.8)" // highlight color (red)
+								: "rgba(59, 130, 246, 0.5)" // default color (blue)
+					),
 					borderColor: "#3b82f6",
 					borderWidth: 1,
 				},
