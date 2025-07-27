@@ -198,6 +198,26 @@ export function get1RMHistory(exerciseName) {
 	return history1RM;
 }
 
+export function getAvgVolumePerWorkout() {
+	let volumes = [];
+	workouts.forEach((workout) => {
+		let workoutVolume = 0;
+		workout.forEach((set) => {
+			if (set.weight_kg && set.reps) {
+				workoutVolume += set.weight_kg * set.reps;
+			}
+		});
+		volumes.push(workoutVolume);
+	});
+	let totalVolume = 0;
+	volumes.forEach((volume) => {
+		totalVolume += volume;
+	});
+
+	const avgVolume = totalVolume / volumes.length;
+	return Math.round(avgVolume);
+}
+
 export function getTotalVolume() {
 	let totalVolume = 0;
 	workouts.forEach((workout) => {

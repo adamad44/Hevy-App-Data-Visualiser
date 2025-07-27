@@ -10,6 +10,7 @@ import {
 	getTimesOfDays,
 	getTotalVolume,
 	getMostCommonExercise,
+	getAvgVolumePerWorkout,
 } from "./calculations.js";
 
 import {
@@ -70,6 +71,10 @@ export function onCSVParsed(results) {
 		{
 			label: "Most common exercise",
 			value: `${getMostCommonExercise()}`,
+		},
+		{
+			label: "Avg volume/workout",
+			value: `${getAvgVolumePerWorkout()} KG`,
 		},
 	];
 
