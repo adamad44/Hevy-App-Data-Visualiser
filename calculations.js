@@ -198,6 +198,53 @@ export function get1RMHistory(exerciseName) {
 	return history1RM;
 }
 
+export function getDaysOfWeekWorkoutWeighted() {
+	let daysOfWeek = [
+		{
+			day: "monday",
+			count: 0,
+		},
+		{
+			day: "tuesday",
+			count: 0,
+		},
+		{
+			day: "wednesday",
+			count: 0,
+		},
+		{
+			day: "thursday",
+			count: 0,
+		},
+		{
+			day: "friday",
+			count: 0,
+		},
+		{
+			day: "saturday",
+			count: 0,
+		},
+		{
+			day: "sunday",
+			count: 0,
+		},
+	];
+	workouts.forEach((workout) => {
+		if (workout[0]) {
+			const date = new Date(workout[0].start_time);
+			const weekday = date
+				.toLocaleDateString("en", { weekday: "long" })
+				.toLowerCase();
+			daysOfWeek.forEach((obj) => {
+				if (obj.day === weekday) {
+					obj.count += 1;
+				}
+			});
+		}
+	});
+	return daysOfWeek;
+}
+
 export function getAvgVolumePerWorkout() {
 	let volumes = [];
 	workouts.forEach((workout) => {

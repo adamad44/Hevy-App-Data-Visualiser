@@ -10,6 +10,7 @@ import {
 	getTimesOfDays,
 	getTotalVolume,
 	getMostCommonExercise,
+	getDaysOfWeekWorkoutWeighted,
 	getAvgVolumePerWorkout,
 } from "./calculations.js";
 
@@ -19,6 +20,7 @@ import {
 	renderWorkoutTimeBarChart,
 	renderRepsCharts,
 	renderVolumeChart,
+	renderWorkoutDayOfWeekBarChart,
 } from "./charts.js";
 
 export let listOfExerciseNames = [];
@@ -91,6 +93,7 @@ export function onCSVParsed(results) {
 		accountStatsElement.appendChild(p);
 	});
 	renderWorkoutTimeBarChart();
+	renderWorkoutDayOfWeekBarChart();
 	renderVolumeChart();
 }
 
@@ -120,6 +123,7 @@ function handleExerciseSelection(event) {
 		renderHeaviestWeightCharts(selectedExercise);
 		renderRepsCharts(selectedExercise);
 		renderWorkoutTimeBarChart();
+		renderWorkoutDayOfWeekBarChart();
 		renderVolumeChart();
 	}
 }
