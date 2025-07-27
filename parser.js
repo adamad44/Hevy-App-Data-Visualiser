@@ -18,6 +18,7 @@ import {
 	renderHeaviestWeightCharts,
 	renderWorkoutTimeBarChart,
 	renderRepsCharts,
+	renderVolumeChart,
 } from "./charts.js";
 
 export let listOfExerciseNames = [];
@@ -90,6 +91,7 @@ export function onCSVParsed(results) {
 		accountStatsElement.appendChild(p);
 	});
 	renderWorkoutTimeBarChart();
+	renderVolumeChart();
 }
 
 function populateExerciseDropdown() {
@@ -118,5 +120,6 @@ function handleExerciseSelection(event) {
 		renderHeaviestWeightCharts(selectedExercise);
 		renderRepsCharts(selectedExercise);
 		renderWorkoutTimeBarChart();
+		renderVolumeChart();
 	}
 }

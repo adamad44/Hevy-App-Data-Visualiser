@@ -12,6 +12,7 @@ import {
 	getTimesOfDays,
 	calculateMovingAverage,
 } from "./calculations.js";
+import { workouts } from "./parser.js";
 
 export async function render1RMCharts(exerciseName) {
 	const history = get1RMHistory(exerciseName);
@@ -488,6 +489,154 @@ export async function renderWorkoutTimeBarChart() {
 						maxRotation: 60,
 						minRotation: 60,
 					},
+				},
+			},
+		},
+	});
+}
+
+export async function renderVolumeChart() {
+	let workoutVolumes = [];
+	workouts.forEach((workout) => {
+		let workoutVolume = 0;
+		let date = "";
+		workout.forEach((set) => {
+			if (set.reps && set.weight_kg) {
+				workoutVolume += set.reps * set.weight_kg;
+				date = set.start_time;
+			}
+		});
+
+		if (date.trim() !== "" && workoutVolume > 0) {
+			workoutVolumes.push({
+				volume: Math.round(workoutVolume),
+				date: date,
+			});
+		}
+	});
+
+	workoutVolumes.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+	let dates = [];
+	let volumes = [];
+
+	workoutVolumes.forEach((obj) => {
+		if (obj.volume !== 0) {
+			dates.push(obj.date);
+			volumes.push(obj.volume);
+		}
+	});
+
+	const chartContainer = document.createElement("div");
+	chartContainer.className = "chart-container";
+
+	const chartCanvas = document.createElement("canvas");
+	chartCanvas.className = "chart-volumes";
+	chartCanvas.id = `chart-volumes`;
+
+	const movingAverageData = calculateMovingAverage(volumes, 20);
+
+	chartContainer.appendChild(chartCanvas);
+
+	const chartsContainer = document.getElementById("charts-container");
+	chartsContainer.appendChild(chartContainer);
+
+	const ctx = document.getElementById(`chart-volumes`);
+
+	new Chart(ctx, {
+		type: "line",
+		data: {
+			labels: dates,
+			datasets: [
+				{
+					label: "volume (KG)",
+					data: volumes,
+					borderColor: "#3b82f6",
+					backgroundColor: "rgba(59, 130, 246, 0.1)",
+					borderWidth: 1,
+					fill: true,
+					tension: 0.2,
+				},
+				{
+					label: "Moving Average",
+					data: movingAverageData,
+					borderColor: "#ef4444",
+					backgroundColor: "transparent",
+					borderWidth: 2,
+					fill: false,
+					tension: 0.3,
+					pointRadius: 0,
+					pointHoverRadius: 4,
+				},
+			],
+		},
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			plugins: {
+				title: {
+					display: true,
+					text: `volume/workout`,
+					font: {
+						size: 18,
+						weight: "bold",
+					},
+					color: "#ffffffff",
+					padding: 20,
+				},
+				legend: {
+					display: true,
+					labels: {
+						color: "#ffffffff",
+						font: {
+							size: 12,
+						},
+					},
+				},
+			},
+			scales: {
+				x: {
+					display: false,
+					grid: {
+						display: false,
+					},
+				},
+				y: {
+					beginAtZero: false,
+					title: {
+						display: true,
+						text: "volume (KG)",
+						font: {
+							size: 14,
+							weight: "bold",
+						},
+						color: "#f4f4f4ff",
+					},
+					grid: {
+						color: "rgba(156, 163, 175, 0.2)",
+					},
+					ticks: {
+						color: "#ffffffff",
+						font: {
+							size: 12,
+						},
+					},
+				},
+			},
+			interaction: {
+				intersect: false,
+				mode: "index",
+			},
+			elements: {
+				point: {
+					radius: 4,
+					hoverRadius: 6,
+					backgroundColor: "#3b82f6",
+					borderColor: "#ffffff",
+					borderWidth: 2,
+				},
+				line: {
+					borderWidth: 2,
 				},
 			},
 		},
