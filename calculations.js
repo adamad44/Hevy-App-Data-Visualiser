@@ -1,5 +1,4 @@
-import { listOfExerciseNames, listOfExercises, workouts } from "./parser.js";
-import { getDisplayWeight, getWeightUnit, isUsingLbs, getVolumeUnit } from "./parser.js";
+import { listOfExerciseNames, listOfExercises, workouts,getDisplayWeight } from "./parser.js";
 
 export function getHighestWeightPR(exerciseObj) {
 	let highestWeight = 0;
