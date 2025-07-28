@@ -1,4 +1,5 @@
 import { listOfExerciseNames, listOfExercises, workouts } from "./parser.js";
+import { getDisplayWeight, getWeightUnit, isUsingLbs, getVolumeUnit } from "./parser.js";
 
 export function getHighestWeightPR(exerciseObj) {
 	let highestWeight = 0;
@@ -138,29 +139,29 @@ export function getMostImprovedExercise() {
 }
 
 export function getExerciseWeightsHistory(ExerciseName) {
-	let weightHistory = [];
+    let weightHistory = [];
 
-	let highestWeight = 0;
-	let date = "";
-	workouts.forEach((workout) => {
-		date = "";
-		highestWeight = 0;
-		workout.forEach((set) => {
-			if (set.exercise_title === ExerciseName && set.set_type !== "warmup") {
-				if (set.weight_kg > highestWeight) highestWeight = Number(set.weight_kg);
-				date = set.start_time;
-			}
-		});
+    let highestWeight = 0;
+    let date = "";
+    workouts.forEach((workout) => {
+        date = "";
+        highestWeight = 0;
+        workout.forEach((set) => {
+            if (set.exercise_title === ExerciseName && set.set_type !== "warmup") {
+                if (set.weight_kg > highestWeight) highestWeight = Number(set.weight_kg);
+                date = set.start_time;
+            }
+        });
 
-		if (date.trim() !== "" && highestWeight !== 0) {
-			weightHistory.push({
-				weight: highestWeight,
-				date: date,
-			});
-		}
-	});
+        if (date.trim() !== "" && highestWeight !== 0) {
+            weightHistory.push({
+                weight: parseFloat(getDisplayWeight(highestWeight)),
+                date: date,
+            });
+        }
+    });
 
-	return weightHistory;
+    return weightHistory;
 }
 
 export function estimate1RM(weight, reps) {
@@ -169,33 +170,33 @@ export function estimate1RM(weight, reps) {
 }
 
 export function get1RMHistory(exerciseName) {
-	let history1RM = [];
+    let history1RM = [];
 
-	let highest1RM = 0;
-	let date = "";
-	workouts.forEach((workout) => {
-		date = "";
-		highest1RM = 0;
-		workout.forEach((set) => {
-			if (set.exercise_title === exerciseName && set.set_type !== "warmup") {
-				const currentSet1RM = estimate1RM(set.weight_kg, set.reps);
-				if (currentSet1RM > highest1RM) highest1RM = currentSet1RM;
-				date = set.start_time;
-			}
-		});
+    let highest1RM = 0;
+    let date = "";
+    workouts.forEach((workout) => {
+        date = "";
+        highest1RM = 0;
+        workout.forEach((set) => {
+            if (set.exercise_title === exerciseName && set.set_type !== "warmup") {
+                const currentSet1RM = estimate1RM(set.weight_kg, set.reps);
+                if (currentSet1RM > highest1RM) highest1RM = currentSet1RM;
+                date = set.start_time;
+            }
+        });
 
-		if (date.trim() !== "" && highest1RM !== 0) {
-			const rounded1RM = isNaN(highest1RM)
-				? 0
-				: Number(parseFloat(highest1RM).toFixed(2));
+        if (date.trim() !== "" && highest1RM !== 0) {
+            const rounded1RM = isNaN(highest1RM)
+                ? 0
+                : Number(parseFloat(getDisplayWeight(highest1RM)).toFixed(2));
 
-			history1RM.push({
-				weight: rounded1RM,
-				date: String(date),
-			});
-		}
-	});
-	return history1RM;
+            history1RM.push({
+                weight: rounded1RM,
+                date: String(date),
+            });
+        }
+    });
+    return history1RM;
 }
 
 export function getDaysOfWeekWorkoutWeighted() {
@@ -246,36 +247,40 @@ export function getDaysOfWeekWorkoutWeighted() {
 }
 
 export function getAvgVolumePerWorkout() {
-	let volumes = [];
-	workouts.forEach((workout) => {
-		let workoutVolume = 0;
-		workout.forEach((set) => {
-			if (set.weight_kg && set.reps) {
-				workoutVolume += set.weight_kg * set.reps;
-			}
-		});
-		volumes.push(workoutVolume);
-	});
-	let totalVolume = 0;
-	volumes.forEach((volume) => {
-		totalVolume += volume;
-	});
+    let volumes = [];
+    workouts.forEach((workout) => {
+        let workoutVolume = 0;
+        workout.forEach((set) => {
+            if (set.weight_kg && set.reps) {
+                const displayWeight = parseFloat(getDisplayWeight(set.weight_kg));
+                workoutVolume += displayWeight * set.reps;
+            }
+        });
+        volumes.push(workoutVolume);
+    });
+    let totalVolume = 0;
+    volumes.forEach((volume) => {
+        totalVolume += volume;
+    });
 
-	const avgVolume = totalVolume / volumes.length;
-	return Math.round(avgVolume);
+    const avgVolume = totalVolume / volumes.length;
+    return Math.round(avgVolume);
 }
 
 export function getTotalVolume() {
-	let totalVolume = 0;
-	workouts.forEach((workout) => {
-		workout.forEach((set) => {
-			const setWeight = Number(set.weight_kg * set.reps);
-			if (setWeight && setWeight !== NaN) {
-				totalVolume += Math.round(setWeight);
-			}
-		});
-	});
-	return totalVolume;
+    let totalVolume = 0;
+    workouts.forEach((workout) => {
+        workout.forEach((set) => {
+            if (set.weight_kg && set.reps) {
+                const displayWeight = parseFloat(getDisplayWeight(set.weight_kg));
+                const setVolume = displayWeight * set.reps;
+                if (setVolume && !isNaN(setVolume)) {
+                    totalVolume += Math.round(setVolume);
+                }
+            }
+        });
+    });
+    return totalVolume;
 }
 
 export function getMostCommonExercise() {
@@ -305,26 +310,27 @@ export function getMostCommonExercise() {
 }
 
 export function getExerciseSessionVolumeHistory(exerciseName) {
-	let volHistory = [];
+    let volHistory = [];
 
-	workouts.forEach((workout) => {
-		let cumulativeVolForSession = 0;
-		let date = "";
-		workout.forEach((set) => {
-			if (set.exercise_title === exerciseName && set.set_type !== "warmup") {
-				cumulativeVolForSession += set.weight_kg * set.reps;
-				date = set.start_time;
-			}
-		});
+    workouts.forEach((workout) => {
+        let cumulativeVolForSession = 0;
+        let date = "";
+        workout.forEach((set) => {
+            if (set.exercise_title === exerciseName && set.set_type !== "warmup") {
+                const displayWeight = parseFloat(getDisplayWeight(set.weight_kg));
+                cumulativeVolForSession += displayWeight * set.reps;
+                date = set.start_time;
+            }
+        });
 
-		if (date.trim() !== "" && cumulativeVolForSession !== 0) {
-			volHistory.push({
-				weight: cumulativeVolForSession,
-				date: String(date),
-			});
-		}
-	});
-	return volHistory;
+        if (date.trim() !== "" && cumulativeVolForSession !== 0) {
+            volHistory.push({
+                weight: cumulativeVolForSession,
+                date: String(date),
+            });
+        }
+    });
+    return volHistory;
 }
 
 export function calculateMovingAverage(data, windowSize = 5) {
