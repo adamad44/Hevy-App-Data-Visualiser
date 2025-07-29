@@ -1022,6 +1022,7 @@ export async function renderConsistencyChart() {
         },
         y: {
           beginAtZero: true,
+          max: 31,
           title: {
             display: true,
             text: "Number of Workouts",
