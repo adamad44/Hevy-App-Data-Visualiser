@@ -13,6 +13,7 @@ import {
   getDaysOfWeekWorkoutWeighted,
   getAvgVolumePerWorkout,
   getSetCountsByMuscleGroup,
+  getConsistencyIndex,
 } from "./calculations.js";
 
 import {
@@ -81,6 +82,10 @@ export function onCSVParsed(results) {
       label: "Avg volume/workout",
       value: `${getAvgVolumePerWorkout()} KG`,
     },
+    {
+      label: "Consistency",
+      value: `${getConsistencyIndex(getAvgTimeBetweenWorkouts())}`,
+    },
   ];
 
   populateExerciseDropdown();
@@ -97,6 +102,13 @@ export function onCSVParsed(results) {
   stats.forEach((stat) => {
     const p = document.createElement("p");
     p.textContent = `${stat.label}: ${stat.value}`;
+
+    if (stat.value === "better than average") {
+      p.style.color = "green";
+    } else if (stat.value === "worse than average") {
+      p.style.color = "red";
+    }
+
     accountStatsElement.appendChild(p);
   });
   renderWorkoutTimeBarChart();

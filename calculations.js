@@ -105,32 +105,84 @@ export function getAvgRepRangeList(exName) {
 export function getAvgTimeBetweenWorkouts() {
   if (!workouts || workouts.length <= 1) return 0;
 
-  const workoutDates = workouts.map(
-    (workout) => new Date(workout[0].start_time)
+  const sortedWorkouts = [...workouts].sort(
+    (a, b) => new Date(a[0].start_time) - new Date(b[0].start_time)
   );
 
-  workoutDates.sort((a, b) => a - b);
+  const daysBetween = [];
+  for (let i = 1; i < sortedWorkouts.length; i++) {
+    const prevWorkoutDate = new Date(sortedWorkouts[i - 1][0].start_time);
+    const currentWorkoutDate = new Date(sortedWorkouts[i][0].start_time);
 
-  let totalDaysBetween = 0;
-  let validIntervals = 0;
+    if (!isNaN(prevWorkoutDate) && !isNaN(currentWorkoutDate)) {
+      const diffDays =
+        (currentWorkoutDate - prevWorkoutDate) / (1000 * 60 * 60 * 24);
 
-  for (let i = 1; i < workoutDates.length; i++) {
-    const currentDate = workoutDates[i];
-    const previousDate = workoutDates[i - 1];
-
-    if (!isNaN(currentDate) && !isNaN(previousDate)) {
-      const daysBetween = (currentDate - previousDate) / (1000 * 60 * 60 * 24);
-      if (daysBetween > 0) {
-        totalDaysBetween += daysBetween;
-        validIntervals++;
+      if (diffDays > 0) {
+        daysBetween.push(diffDays);
       }
     }
   }
 
-  if (validIntervals === 0) return 0;
+  if (daysBetween.length === 0) return 0;
 
-  const averageDays = totalDaysBetween / validIntervals;
-  return Math.round(averageDays * 10) / 10;
+  daysBetween.sort((a, b) => a - b);
+
+  const midIndex = Math.floor(daysBetween.length / 2);
+
+  let median;
+  if (daysBetween.length % 2 === 0) {
+    median = (daysBetween[midIndex - 1] + daysBetween[midIndex]) / 2;
+  } else {
+    median = daysBetween[midIndex];
+  }
+
+  return Math.round(median * 10) / 10;
+}
+
+export function getConsistencyIndex(avgDaysBetween) {
+  if (!workouts || workouts.length <= 1) return 0;
+
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const recentWorkouts = workouts.filter(
+    (workout) => new Date(workout[0].start_time) >= thirtyDaysAgo
+  );
+
+  if (recentWorkouts.length <= 1) return 0;
+
+  const sortedWorkouts = [...recentWorkouts].sort(
+    (a, b) => new Date(a[0].start_time) - new Date(b[0].start_time)
+  );
+
+  const daysBetween = [];
+  for (let i = 1; i < sortedWorkouts.length; i++) {
+    const prevWorkoutDate = new Date(sortedWorkouts[i - 1][0].start_time);
+    const currentWorkoutDate = new Date(sortedWorkouts[i][0].start_time);
+
+    if (!isNaN(prevWorkoutDate) && !isNaN(currentWorkoutDate)) {
+      const diffDays =
+        (currentWorkoutDate - prevWorkoutDate) / (1000 * 60 * 60 * 24);
+
+      if (diffDays > 0) {
+        daysBetween.push(diffDays);
+      }
+    }
+  }
+
+  if (daysBetween.length === 0) return 0;
+
+  const meanDaysBetween =
+    daysBetween.reduce((sum, days) => sum + days, 0) / daysBetween.length;
+
+  if (Math.round(meanDaysBetween * 10) / 10 > avgDaysBetween) {
+    return "worse than average";
+  } else if (Math.round(meanDaysBetween * 10) / 10 < avgDaysBetween) {
+    return "better than average";
+  } else {
+    return "average";
+  }
 }
 
 export function getMostImprovedExercise() {
