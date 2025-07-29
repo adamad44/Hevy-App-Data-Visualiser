@@ -32,6 +32,19 @@ export let workouts = [];
 export let listOfExercises = {};
 
 export function onCSVParsed(results) {
+  listOfExerciseNames = [];
+  workouts.length = 0;
+  for (const key in listOfExercises) {
+    delete listOfExercises[key];
+  }
+
+  const accountStatsElement = document.querySelector(
+    "#account-stats-container"
+  );
+  if (accountStatsElement) accountStatsElement.innerHTML = "";
+  const chartsContainer = document.getElementById("charts-container");
+  if (chartsContainer) chartsContainer.innerHTML = "";
+
   const rows = results.data;
   let temp = [];
 
@@ -92,14 +105,9 @@ export function onCSVParsed(results) {
   document.getElementById("time-period-selector-container").style.display =
     "block";
 
-  const accountStatsElement = document.querySelector(
-    "#account-stats-container"
-  );
-
   stats.forEach((stat) => {
     const p = document.createElement("p");
     p.textContent = `${stat.label}: ${stat.value}`;
-
     accountStatsElement.appendChild(p);
   });
   renderWorkoutTimeBarChart();
