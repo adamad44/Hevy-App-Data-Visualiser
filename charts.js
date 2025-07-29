@@ -937,6 +937,7 @@ export async function renderConsistencyChart() {
 
   const chartsContainer = document.getElementById("charts-container");
   chartsContainer.appendChild(chartContainer);
+  const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
 
   const ctx = document.getElementById("chart-consistency");
 
@@ -978,7 +979,9 @@ export async function renderConsistencyChart() {
       plugins: {
         title: {
           display: true,
-          text: "Workout Consistency (Workouts per Month)",
+          text: `Workout Consistency (Workouts per Month) (AVG: ${Math.round(
+            avg
+          )})`,
           font: { size: 18, weight: "bold" },
           color: "#ffffffff",
           padding: 20,
