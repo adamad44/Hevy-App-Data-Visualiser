@@ -59,12 +59,12 @@ export function onCSVParsed(results) {
   const stats = [
     { label: "Workout count", value: workouts.length },
     {
-      label: "Avg workout duration",
+      label: "Mean workout duration",
       value: `${getAvgWorkoutDuration()} minutes`,
     },
-    { label: "Avg reps per set", value: getAvgRepRange() },
+    { label: "Mean reps per set", value: getAvgRepRange() },
     {
-      label: "Avg time between workouts",
+      label: "Median time between workouts",
       value: `${getAvgTimeBetweenWorkouts()} days`,
     },
     {
@@ -80,7 +80,7 @@ export function onCSVParsed(results) {
       value: `${getMostCommonExercise()}`,
     },
     {
-      label: "Avg volume/workout",
+      label: "Mean volume/workout",
       value: `${getAvgVolumePerWorkout()} KG`,
     },
   ];
