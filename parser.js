@@ -13,7 +13,7 @@ import {
   getDaysOfWeekWorkoutWeighted,
   getAvgVolumePerWorkout,
   getSetCountsByMuscleGroup,
-  getConsistencyIndex,
+  getConsistencyHistoryData,
 } from "./calculations.js";
 
 import {
@@ -24,6 +24,7 @@ import {
   renderVolumeChart,
   renderWorkoutDayOfWeekBarChart,
   renderMuscleGroupChart,
+  renderConsistencyChart,
 } from "./charts.js";
 
 export let listOfExerciseNames = [];
@@ -82,10 +83,6 @@ export function onCSVParsed(results) {
       label: "Avg volume/workout",
       value: `${getAvgVolumePerWorkout()} KG`,
     },
-    {
-      label: "Consistency",
-      value: `${getConsistencyIndex(getAvgTimeBetweenWorkouts())}`,
-    },
   ];
 
   populateExerciseDropdown();
@@ -103,18 +100,13 @@ export function onCSVParsed(results) {
     const p = document.createElement("p");
     p.textContent = `${stat.label}: ${stat.value}`;
 
-    if (stat.value === "better than average") {
-      p.style.color = "green";
-    } else if (stat.value === "worse than average") {
-      p.style.color = "red";
-    }
-
     accountStatsElement.appendChild(p);
   });
   renderWorkoutTimeBarChart();
   renderWorkoutDayOfWeekBarChart();
   renderVolumeChart();
   renderMuscleGroupChart();
+  renderConsistencyChart();
 }
 
 function populateExerciseDropdown() {
@@ -149,5 +141,6 @@ function handleExerciseSelection(event) {
     renderWorkoutDayOfWeekBarChart();
     renderVolumeChart();
     renderMuscleGroupChart();
+    renderConsistencyChart();
   }
 }

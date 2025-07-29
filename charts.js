@@ -13,6 +13,7 @@ import {
   calculateMovingAverage,
   getDaysOfWeekWorkoutWeighted,
   getSetCountsByMuscleGroup,
+  getConsistencyHistoryData,
 } from "./calculations.js";
 import { workouts } from "./parser.js";
 
@@ -913,6 +914,138 @@ export async function renderMuscleGroupChart() {
             maxRotation: 60,
             minRotation: 60,
           },
+        },
+      },
+    },
+  });
+}
+
+export async function renderConsistencyChart() {
+  const monthsData = getConsistencyHistoryData();
+  monthsData.sort((a, b) => new Date(a.month) - new Date(b.month));
+
+  const months = monthsData.map((obj) => obj.month);
+  const counts = monthsData.map((obj) => obj.count);
+  const movingAvg = calculateMovingAverage(counts, 3);
+
+  const chartContainer = document.createElement("div");
+  chartContainer.className = "chart-container";
+
+  const chartCanvas = document.createElement("canvas");
+  chartCanvas.id = "chart-consistency";
+  chartContainer.appendChild(chartCanvas);
+
+  const chartsContainer = document.getElementById("charts-container");
+  chartsContainer.appendChild(chartContainer);
+
+  const ctx = document.getElementById("chart-consistency");
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: "Workouts per Month",
+          data: counts,
+          backgroundColor: counts.map((count, i) =>
+            i === counts.indexOf(Math.max(...counts))
+              ? "rgba(239, 68, 68, 0.8)"
+              : "rgba(59, 130, 246, 0.5)"
+          ),
+          borderColor: "#3b82f6",
+          borderWidth: 1,
+          yAxisID: "y",
+        },
+        {
+          label: "Moving Average",
+          type: "line",
+          data: movingAvg,
+          borderColor: "#ef4444",
+          backgroundColor: "transparent",
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          yAxisID: "y",
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "Workout Consistency (Workouts per Month)",
+          font: { size: 18, weight: "bold" },
+          color: "#ffffffff",
+          padding: 20,
+        },
+        legend: {
+          display: true,
+          labels: {
+            color: "#ffffffff",
+            font: { size: 12 },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              if (context.dataset.type === "line") {
+                return `Moving Avg: ${context.raw.toFixed(2)}`;
+              }
+              return `Workouts: ${context.raw}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Month",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: { display: false },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 12 },
+            maxRotation: 60,
+            minRotation: 60,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Number of Workouts",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: { color: "rgba(156, 163, 175, 0.2)" },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 12 },
+          },
+        },
+      },
+      interaction: {
+        intersect: false,
+        mode: "index",
+      },
+      elements: {
+        point: {
+          radius: 4,
+          hoverRadius: 6,
+          backgroundColor: "#3b82f6",
+          borderColor: "#ffffff",
+          borderWidth: 2,
+        },
+        line: {
+          borderWidth: 2,
         },
       },
     },
