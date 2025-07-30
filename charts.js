@@ -928,6 +928,10 @@ export async function renderConsistencyChart() {
   const counts = monthsData.map((obj) => obj.count);
   const movingAvg = calculateMovingAverage(counts, 3);
 
+  const performanceStatus = counts.map((count, i) =>
+    i >= 3 && count > movingAvg[i] ? "above" : "below"
+  );
+
   const chartContainer = document.createElement("div");
   chartContainer.className = "chart-container";
 
@@ -949,13 +953,19 @@ export async function renderConsistencyChart() {
         {
           label: "Workouts per Month",
           data: counts,
-          backgroundColor: counts.map((count, i) =>
-            i === counts.indexOf(Math.max(...counts))
-              ? "rgba(239, 68, 68, 0.8)"
-              : "rgba(59, 130, 246, 0.5)"
+          backgroundColor: counts.map((count, i) => {
+            if (i === counts.indexOf(Math.max(...counts))) {
+              return "rgba(239, 68, 68, 0.8)";
+            } else {
+              return "#1459c8ff";
+            }
+          }),
+          borderColor: counts.map((count, i) =>
+            i >= 3 && count > movingAvg[i] ? "#0f9d43ff" : "#3b82f6"
           ),
-          borderColor: "#3b82f6",
-          borderWidth: 1,
+          borderWidth: counts.map((count, i) =>
+            i >= 3 && count > movingAvg[i] ? 2 : 1
+          ),
           yAxisID: "y",
         },
         {
@@ -999,7 +1009,26 @@ export async function renderConsistencyChart() {
               if (context.dataset.type === "line") {
                 return `Moving Avg: ${context.raw.toFixed(2)}`;
               }
-              return `Workouts: ${context.raw}`;
+
+              const idx = context.dataIndex;
+              const count = counts[idx];
+              const movingAvgValue = movingAvg[idx];
+
+              if (idx >= 3) {
+                if (count > movingAvgValue) {
+                  return [
+                    `Workouts: ${count}`,
+                    `Above average - Keep it up! 👍`,
+                  ];
+                } else {
+                  return [
+                    `Workouts: ${count}`,
+                    `Below average - Try to do more! 💪`,
+                  ];
+                }
+              }
+
+              return `Workouts: ${count}`;
             },
           },
         },
