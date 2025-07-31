@@ -14,6 +14,7 @@ import {
   getDaysOfWeekWorkoutWeighted,
   getSetCountsByMuscleGroup,
   getConsistencyHistoryData,
+  getSetCountsByMuscleGroupOverTime,
 } from "./calculations.js";
 import { workouts } from "./parser.js";
 
@@ -1090,6 +1091,156 @@ export async function renderConsistencyChart() {
           hoverRadius: 6,
           backgroundColor: "#3b82f6",
           borderColor: "#ffffff",
+          borderWidth: 2,
+        },
+        line: {
+          borderWidth: 2,
+        },
+      },
+    },
+  });
+}
+
+export async function renderMuscleGroupOverTimeChart() {
+  const muscleGroupOverTimeData = getSetCountsByMuscleGroupOverTime();
+
+  // Sort data by month chronologically
+  muscleGroupOverTimeData.sort((a, b) => new Date(a.month) - new Date(b.month));
+
+  // Extract months for labels
+  const months = muscleGroupOverTimeData.map((item) => item.month);
+
+  // Get all unique muscle groups
+  const allMuscleGroups = [];
+  muscleGroupOverTimeData.forEach((monthData) => {
+    Object.keys(monthData.muscleGroups).forEach((muscleGroup) => {
+      if (!allMuscleGroups.includes(muscleGroup)) {
+        allMuscleGroups.push(muscleGroup);
+      }
+    });
+  });
+
+  // Create color palette for different muscle groups
+  const colors = [
+    "rgba(59, 130, 246, 0.8)", // Blue
+    "rgba(239, 68, 68, 0.8)", // Red
+    "rgba(34, 197, 94, 0.8)", // Green
+    "rgba(245, 158, 11, 0.8)", // Yellow
+    "rgba(168, 85, 247, 0.8)", // Purple
+    "rgba(236, 72, 153, 0.8)", // Pink
+    "rgba(14, 165, 233, 0.8)", // Light Blue
+    "rgba(251, 146, 60, 0.8)", // Orange
+    "rgba(132, 204, 22, 0.8)", // Lime
+    "rgba(156, 163, 175, 0.8)", // Gray
+    "rgba(45, 212, 191, 0.8)", // Teal
+    "rgba(139, 69, 19, 0.8)", // Brown
+  ];
+
+  // Create datasets for each muscle group
+  const datasets = allMuscleGroups.map((muscleGroup, index) => {
+    const data = muscleGroupOverTimeData.map((monthData) =>
+      monthData.muscleGroups[muscleGroup]
+        ? monthData.muscleGroups[muscleGroup].count
+        : 0
+    );
+
+    return {
+      label: muscleGroup,
+      data: data,
+      backgroundColor: colors[index % colors.length],
+      borderColor: colors[index % colors.length].replace("0.8", "1"),
+      borderWidth: 2,
+      tension: 0.3,
+      fill: false,
+    };
+  });
+
+  const chartContainer = document.createElement("div");
+  chartContainer.className = "chart-container";
+
+  const chartCanvas = document.createElement("canvas");
+  chartCanvas.id = "chart-muscle-groups-over-time";
+  chartContainer.appendChild(chartCanvas);
+
+  const chartsContainer = document.getElementById("charts-container");
+  chartsContainer.appendChild(chartContainer);
+
+  const ctx = document.getElementById("chart-muscle-groups-over-time");
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: months,
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "Muscle Group Training Volume Over Time",
+          font: { size: 18, weight: "bold" },
+          color: "#ffffffff",
+          padding: 20,
+        },
+        legend: {
+          display: true,
+          labels: {
+            color: "#ffffffff",
+            font: { size: 10 },
+            usePointStyle: true,
+            pointStyle: "line",
+          },
+          position: "top",
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return `${context.dataset.label}: ${context.raw} sets`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Month",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: { display: false },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 10 },
+            maxRotation: 45,
+            minRotation: 45,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Number of Sets",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: { color: "rgba(156, 163, 175, 0.2)" },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 12 },
+          },
+        },
+      },
+      interaction: {
+        intersect: false,
+        mode: "index",
+      },
+      elements: {
+        point: {
+          radius: 3,
+          hoverRadius: 6,
           borderWidth: 2,
         },
         line: {

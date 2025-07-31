@@ -25,6 +25,7 @@ import {
   renderWorkoutDayOfWeekBarChart,
   renderMuscleGroupChart,
   renderConsistencyChart,
+  renderMuscleGroupOverTimeChart,
 } from "./charts.js";
 
 export let listOfExerciseNames = [];
@@ -115,6 +116,7 @@ export function onCSVParsed(results) {
   renderVolumeChart();
   renderMuscleGroupChart();
   renderConsistencyChart();
+  renderMuscleGroupOverTimeChart();
 }
 
 function populateExerciseDropdown() {
@@ -150,5 +152,6 @@ function handleExerciseSelection(event) {
     renderVolumeChart();
     renderMuscleGroupChart();
     renderConsistencyChart();
+    renderMuscleGroupOverTimeChart();
   }
 }

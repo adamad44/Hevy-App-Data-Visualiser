@@ -405,3 +405,71 @@ export function getConsistencyHistoryData() {
 
   return months;
 }
+
+export function getSetCountsByMuscleGroupOverTime() {
+  let sortedWorkoutData = [];
+  let muscleGroupMonthCountData = [];
+
+  workouts.forEach((workout) => {
+    const month = new Date(workout[0].start_time).toLocaleString("default", {
+      month: "long",
+      year: "numeric",
+    });
+    if (!sortedWorkoutData.find((entry) => entry.month === month)) {
+      sortedWorkoutData.push({ month: month, sets: [] });
+    }
+    workout.forEach((set) => {
+      if (set.set_type === "warmup" || !set.exercise_title) {
+        return;
+      }
+
+      const monthEntry = sortedWorkoutData.find(
+        (entry) => entry.month === month
+      );
+      if (monthEntry) {
+        monthEntry.sets.push(set);
+      }
+    });
+  });
+
+  sortedWorkoutData.forEach((obj) => {
+    let objMonthData = {};
+    const month = obj.month;
+    obj.sets.forEach((set) => {
+      const muscleGroup = muscleGroupData[set.exercise_title];
+
+      if (muscleGroup) {
+        if (!objMonthData[muscleGroup]) {
+          objMonthData[muscleGroup] = { month: month, count: 1 };
+        } else {
+          objMonthData[muscleGroup].count++;
+        }
+      }
+    });
+    muscleGroupMonthCountData.push({
+      month: month,
+      muscleGroups: objMonthData,
+    });
+  });
+
+  const allMuscleGroups = Object.keys(muscleGroupData).reduce((acc, key) => {
+    const muscleGroup = muscleGroupData[key];
+    if (!acc.includes(muscleGroup)) {
+      acc.push(muscleGroup);
+    }
+    return acc;
+  }, []);
+
+  muscleGroupMonthCountData.forEach((monthData) => {
+    allMuscleGroups.forEach((muscleGroup) => {
+      if (!monthData.muscleGroups[muscleGroup]) {
+        monthData.muscleGroups[muscleGroup] = {
+          month: monthData.month,
+          count: 0,
+        };
+      }
+    });
+  });
+
+  return muscleGroupMonthCountData;
+}
