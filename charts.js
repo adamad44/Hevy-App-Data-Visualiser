@@ -994,7 +994,22 @@ export async function renderConsistencyChart() {
           )})`,
           font: { size: 18, weight: "bold" },
           color: "#ffffffff",
-          padding: 20,
+          padding: {
+            top: 20,
+            bottom: 5,
+          },
+        },
+        subtitle: {
+          display: true,
+          text: "Keeping each bar above the moving average (green outline) ensures progression in consistency",
+          color: "#dddddd",
+          font: {
+            size: 12,
+            style: "italic",
+          },
+          padding: {
+            bottom: 20,
+          },
         },
         legend: {
           display: true,
