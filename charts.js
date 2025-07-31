@@ -1103,11 +1103,9 @@ export async function renderConsistencyChart() {
 export async function renderMuscleGroupOverTimeChart() {
   const muscleGroupOverTimeData = getSetCountsByMuscleGroupOverTime();
 
-  // Sort by month
   muscleGroupOverTimeData.sort((a, b) => new Date(a.month) - new Date(b.month));
   const months = muscleGroupOverTimeData.map((item) => item.month);
 
-  // Get all unique muscle groups
   const allMuscleGroups = [];
   muscleGroupOverTimeData.forEach((monthData) => {
     Object.keys(monthData.muscleGroups).forEach((muscleGroup) => {
