@@ -1100,14 +1100,11 @@ export async function renderConsistencyChart() {
     },
   });
 }
-
 export async function renderMuscleGroupOverTimeChart() {
   const muscleGroupOverTimeData = getSetCountsByMuscleGroupOverTime();
 
-  // Sort data by month chronologically
+  // Sort by month
   muscleGroupOverTimeData.sort((a, b) => new Date(a.month) - new Date(b.month));
-
-  // Extract months for labels
   const months = muscleGroupOverTimeData.map((item) => item.month);
 
   // Get all unique muscle groups
@@ -1120,44 +1117,86 @@ export async function renderMuscleGroupOverTimeChart() {
     });
   });
 
-  // Create color palette for different muscle groups
+  // Define colors
   const colors = [
-    "rgba(59, 130, 246, 0.8)", // Blue
-    "rgba(239, 68, 68, 0.8)", // Red
-    "rgba(34, 197, 94, 0.8)", // Green
-    "rgba(245, 158, 11, 0.8)", // Yellow
-    "rgba(168, 85, 247, 0.8)", // Purple
-    "rgba(236, 72, 153, 0.8)", // Pink
-    "rgba(14, 165, 233, 0.8)", // Light Blue
-    "rgba(251, 146, 60, 0.8)", // Orange
-    "rgba(132, 204, 22, 0.8)", // Lime
-    "rgba(156, 163, 175, 0.8)", // Gray
-    "rgba(45, 212, 191, 0.8)", // Teal
-    "rgba(139, 69, 19, 0.8)", // Brown
+    "rgba(59, 130, 246, 0.8)",
+    "rgba(239, 68, 68, 0.8)",
+    "rgba(34, 197, 94, 0.8)",
+    "rgba(245, 158, 11, 0.8)",
+    "rgba(168, 85, 247, 0.8)",
+    "rgba(236, 72, 153, 0.8)",
+    "rgba(14, 165, 233, 0.8)",
+    "rgba(251, 146, 60, 0.8)",
+    "rgba(132, 204, 22, 0.8)",
+    "rgba(156, 163, 175, 0.8)",
+    "rgba(45, 212, 191, 0.8)",
+    "rgba(139, 69, 19, 0.8)",
   ];
 
-  // Create datasets for each muscle group
-  const datasets = allMuscleGroups.map((muscleGroup, index) => {
-    const data = muscleGroupOverTimeData.map((monthData) =>
-      monthData.muscleGroups[muscleGroup]
-        ? monthData.muscleGroups[muscleGroup].count
-        : 0
-    );
+  // Create datasets for selected muscle groups
+  const createDatasets = (selectedGroups) => {
+    return allMuscleGroups
+      .filter((group) => selectedGroups.includes(group))
+      .map((muscleGroup, index) => {
+        const data = muscleGroupOverTimeData.map(
+          (monthData) => monthData.muscleGroups[muscleGroup]?.count || 0
+        );
 
-    return {
-      label: muscleGroup,
-      data: data,
-      backgroundColor: colors[index % colors.length],
-      borderColor: colors[index % colors.length].replace("0.8", "1"),
-      borderWidth: 2,
-      tension: 0.3,
-      fill: false,
-    };
-  });
+        return {
+          label: muscleGroup,
+          data: data,
+          backgroundColor: colors[index % colors.length],
+          borderColor: colors[index % colors.length].replace("0.8", "1"),
+          borderWidth: 2,
+          tension: 0.3,
+          fill: false,
+        };
+      });
+  };
 
+  // Chart container with fixed height
   const chartContainer = document.createElement("div");
   chartContainer.className = "chart-container";
+  chartContainer.style.position = "relative";
+  chartContainer.style.height = "400px";
+  chartContainer.style.marginBottom = "2rem";
+  chartContainer.style.width = "100%";
 
+  // Checkboxes
+  const checkboxContainer = document.createElement("div");
+  checkboxContainer.className = "checkbox-container";
+  checkboxContainer.style.marginBottom = "1rem";
+  checkboxContainer.style.display = "flex";
+  checkboxContainer.style.flexWrap = "wrap";
+  checkboxContainer.style.gap = "8px";
+  checkboxContainer.style.color = "#ffffff";
+
+  allMuscleGroups.forEach((muscleGroup) => {
+    const label = document.createElement("label");
+    label.style.marginRight = "12px";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    checkbox.value = muscleGroup;
+
+    checkbox.addEventListener("change", () => {
+      const selectedGroups = Array.from(
+        checkboxContainer.querySelectorAll("input:checked")
+      ).map((cb) => cb.value);
+
+      chart.data.datasets = createDatasets(selectedGroups);
+      chart.update();
+    });
+
+    label.appendChild(checkbox);
+    label.append(" " + muscleGroup);
+    checkboxContainer.appendChild(label);
+  });
+
+  chartContainer.appendChild(checkboxContainer);
+
+  // Create chart canvas
   const chartCanvas = document.createElement("canvas");
   chartCanvas.id = "chart-muscle-groups-over-time";
   chartContainer.appendChild(chartCanvas);
@@ -1165,13 +1204,13 @@ export async function renderMuscleGroupOverTimeChart() {
   const chartsContainer = document.getElementById("charts-container");
   chartsContainer.appendChild(chartContainer);
 
-  const ctx = document.getElementById("chart-muscle-groups-over-time");
+  const ctx = chartCanvas.getContext("2d");
 
-  new Chart(ctx, {
+  const chart = new Chart(ctx, {
     type: "line",
     data: {
       labels: months,
-      datasets: datasets,
+      datasets: createDatasets(allMuscleGroups),
     },
     options: {
       responsive: true,
