@@ -3,18 +3,6 @@ import { exerciseMuscleGroups } from "./assets/exercise-muscle-groups.js";
 
 const muscleGroupData = exerciseMuscleGroups;
 
-export function getHighestWeightPR(exerciseObj) {
-  let highestWeight = 0;
-
-  exerciseObj.history.forEach((entry) => {
-    if (entry.weight_kg && !isNaN(entry.weight_kg)) {
-      highestWeight = Math.max(highestWeight, parseFloat(entry.weight_kg));
-    }
-  });
-
-  return highestWeight;
-}
-
 export function getTimesOfDays() {
   let times = [];
   workouts.forEach((workout) => {
@@ -472,4 +460,82 @@ export function getSetCountsByMuscleGroupOverTime() {
   });
 
   return muscleGroupMonthCountData;
+}
+
+function getHighestWeightForExerciseInMonth(exerciseName, month, dataByMonth) {
+  let highest = 0;
+  const monthData = dataByMonth[month];
+
+  if (!monthData) return highest;
+
+  monthData.forEach((set) => {
+    if (
+      set.exercise_title === exerciseName &&
+      set.weight_kg &&
+      !isNaN(set.weight_kg)
+    ) {
+      highest = Math.max(highest, parseFloat(set.weight_kg));
+    }
+  });
+
+  return highest;
+}
+
+export function getPRCountPerMonth() {
+  const dataByMonth = {};
+
+  workouts.forEach((workout) => {
+    workout.forEach((set) => {
+      if (set.set_type === "warmup" || !set.exercise_title) return;
+
+      const month = new Date(set.start_time).toLocaleString("default", {
+        month: "long",
+        year: "numeric",
+      });
+
+      if (!dataByMonth[month]) {
+        dataByMonth[month] = [];
+      }
+      dataByMonth[month].push(set);
+    });
+  });
+
+  const monthsSorted = Object.keys(dataByMonth).sort(
+    (a, b) => new Date("1 " + a) - new Date("1 " + b)
+  );
+
+  const prCounts = [];
+
+  for (let i = 1; i < monthsSorted.length; i++) {
+    const currentMonth = monthsSorted[i];
+    const prevMonth = monthsSorted[i - 1];
+
+    const exercises = new Set(
+      dataByMonth[currentMonth].map((set) => set.exercise_title)
+    );
+
+    let prCount = 0;
+
+    exercises.forEach((exercise) => {
+      const prevMax = getHighestWeightForExerciseInMonth(
+        exercise,
+        prevMonth,
+        dataByMonth
+      );
+      const currMax = getHighestWeightForExerciseInMonth(
+        exercise,
+        currentMonth,
+        dataByMonth
+      );
+
+      if (currMax > prevMax) {
+        prCount++;
+      }
+    });
+
+    prCounts.push({ month: currentMonth, prCount });
+  }
+
+  console.log(prCounts);
+  return prCounts;
 }

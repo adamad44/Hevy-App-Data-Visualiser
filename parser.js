@@ -14,6 +14,7 @@ import {
   getAvgVolumePerWorkout,
   getSetCountsByMuscleGroup,
   getConsistencyHistoryData,
+  getPRCountPerMonth,
 } from "./calculations.js";
 
 import {
@@ -26,6 +27,7 @@ import {
   renderMuscleGroupChart,
   renderConsistencyChart,
   renderMuscleGroupOverTimeChart,
+  renderPRCountChart,
 } from "./charts.js";
 
 export let listOfExerciseNames = [];
@@ -117,6 +119,7 @@ export function onCSVParsed(results) {
   renderMuscleGroupChart();
   renderConsistencyChart();
   renderMuscleGroupOverTimeChart();
+  renderPRCountChart();
 }
 
 function populateExerciseDropdown() {
@@ -153,5 +156,6 @@ function handleExerciseSelection(event) {
     renderMuscleGroupChart();
     renderConsistencyChart();
     renderMuscleGroupOverTimeChart();
+    renderPRCountChart();
   }
 }

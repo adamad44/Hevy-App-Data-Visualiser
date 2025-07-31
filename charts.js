@@ -1,5 +1,4 @@
 import {
-  getHighestWeightPR,
   getAvgWorkoutDuration,
   getAvgRepRange,
   getAvgTimeBetweenWorkouts,
@@ -15,6 +14,7 @@ import {
   getSetCountsByMuscleGroup,
   getConsistencyHistoryData,
   getSetCountsByMuscleGroupOverTime,
+  getPRCountPerMonth,
 } from "./calculations.js";
 import { workouts } from "./parser.js";
 
@@ -1278,6 +1278,154 @@ export async function renderMuscleGroupOverTimeChart() {
         point: {
           radius: 3,
           hoverRadius: 6,
+          borderWidth: 2,
+        },
+        line: {
+          borderWidth: 2,
+        },
+      },
+    },
+  });
+}
+export async function renderPRCountChart() {
+  const prData = getPRCountPerMonth();
+
+  prData.sort((a, b) => new Date(a.month) - new Date(b.month));
+
+  const months = prData.map((item) => item.month);
+  const prCounts = prData.map((item) => item.prCount);
+
+  // Calculate cumulative PR counts
+  const cumulativePRs = [];
+  let runningTotal = 0;
+  prCounts.forEach((count) => {
+    runningTotal += count;
+    cumulativePRs.push(runningTotal);
+  });
+
+  const chartContainer = document.createElement("div");
+  chartContainer.className = "chart-container";
+
+  const chartCanvas = document.createElement("canvas");
+  chartCanvas.id = "chart-pr-count";
+  chartContainer.appendChild(chartCanvas);
+
+  const chartsContainer = document.getElementById("charts-container");
+  chartsContainer.appendChild(chartContainer);
+
+  const ctx = document.getElementById("chart-pr-count");
+  const totalPRs = cumulativePRs[cumulativePRs.length - 1];
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: "Cumulative Personal Records",
+          data: cumulativePRs,
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          borderWidth: 2,
+          fill: true,
+          tension: 0.2,
+          pointBackgroundColor: "#3b82f6",
+          pointBorderColor: "#ffffff",
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `Cumulative Personal Records (Total: ${totalPRs})`,
+          font: { size: 18, weight: "bold" },
+          color: "#ffffffff",
+          padding: {
+            top: 20,
+            bottom: 5,
+          },
+        },
+        subtitle: {
+          display: true,
+          text: "Total personal records achieved over time",
+          color: "#dddddd",
+          font: {
+            size: 12,
+            style: "italic",
+          },
+          padding: {
+            bottom: 20,
+          },
+        },
+        legend: {
+          display: true,
+          labels: {
+            color: "#ffffffff",
+            font: { size: 12 },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const idx = context.dataIndex;
+              const monthlyCount = prCounts[idx];
+              const cumulativeCount = cumulativePRs[idx];
+
+              return [
+                `Total PRs: ${cumulativeCount}`,
+                `This month: ${monthlyCount}`,
+              ];
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Month",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: { display: false },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 10 },
+            maxRotation: 60,
+            minRotation: 60,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Cumulative Personal Records",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: { color: "rgba(156, 163, 175, 0.2)" },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 12 },
+          },
+        },
+      },
+      interaction: {
+        intersect: false,
+        mode: "index",
+      },
+      elements: {
+        point: {
+          radius: 4,
+          hoverRadius: 6,
+          backgroundColor: "#3b82f6",
+          borderColor: "#ffffff",
           borderWidth: 2,
         },
         line: {
