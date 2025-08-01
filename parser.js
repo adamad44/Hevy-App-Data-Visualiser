@@ -166,6 +166,7 @@ function handleExerciseSelection(event) {
     renderWorkoutTimeBarChart();
     renderWorkoutDayOfWeekBarChart();
     renderVolumeChart();
+    renderMuscleGroupOverTimeChart();
   }
 }
 
