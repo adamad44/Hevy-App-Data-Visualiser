@@ -31,26 +31,38 @@ import {
 export let listOfExerciseNames = [];
 export let workouts = [];
 export let listOfExercises = {};
+export let weightUnit = "kg"; // Default unit
+export let isUsingLbs = false;
 
 export function onCSVParsed(results) {
-  listOfExerciseNames = [];
-  workouts.length = 0;
-  for (const key in listOfExercises) {
-    delete listOfExercises[key];
+  const rows = results.data;
+
+  // Detect weight unit from CSV headers
+  if (rows.length > 0) {
+    const headers = Object.keys(rows[0]);
+    if (headers.includes("weight_lbs")) {
+      weightUnit = "lbs";
+      isUsingLbs = true;
+    } else if (headers.includes("weight_kg")) {
+      weightUnit = "kg";
+      isUsingLbs = false;
+    }
   }
 
-  const accountStatsElement = document.querySelector(
-    "#account-stats-container"
-  );
-  if (accountStatsElement) accountStatsElement.innerHTML = "";
-  const chartsContainer = document.getElementById("charts-container");
-  if (chartsContainer) chartsContainer.innerHTML = "";
-
-  const rows = results.data;
   let temp = [];
 
   rows.forEach((row, index) => {
-    temp.push(row);
+    // Normalize weight to kg for internal calculations
+    let normalizedRow = { ...row };
+    if (isUsingLbs && row.weight_lbs) {
+      normalizedRow.weight_kg = (parseFloat(row.weight_lbs) / 2.20462).toFixed(
+        2
+      );
+    } else if (!isUsingLbs && row.weight_kg) {
+      normalizedRow.weight_kg = row.weight_kg;
+    }
+
+    temp.push(normalizedRow);
 
     if (
       index === rows.length - 1 ||
@@ -67,18 +79,19 @@ export function onCSVParsed(results) {
       };
     }
 
-    listOfExercises[row.exercise_title].history.push(row);
+    listOfExercises[row.exercise_title].history.push(normalizedRow);
   });
+
   listOfExerciseNames = Object.keys(listOfExercises);
   const stats = [
     { label: "Workout count", value: workouts.length },
     {
-      label: "Mean workout duration",
+      label: "Avg workout duration",
       value: `${getAvgWorkoutDuration()} minutes`,
     },
-    { label: "Mean reps per set", value: getAvgRepRange() },
+    { label: "Avg reps per set", value: getAvgRepRange() },
     {
-      label: "Median time between workouts",
+      label: "Avg time between workouts",
       value: `${getAvgTimeBetweenWorkouts()} days`,
     },
     {
@@ -87,15 +100,15 @@ export function onCSVParsed(results) {
     },
     {
       label: "Total volume",
-      value: `${getTotalVolume().toLocaleString()} KG`,
+      value: `${getTotalVolume().toLocaleString()} ${getVolumeUnit()}`,
     },
     {
       label: "Most common exercise",
       value: `${getMostCommonExercise()}`,
     },
     {
-      label: "Mean volume/workout",
-      value: `${getAvgVolumePerWorkout()} KG`,
+      label: "Avg volume/workout",
+      value: `${getAvgVolumePerWorkout()} ${getVolumeUnit()}`,
     },
   ];
 
@@ -106,6 +119,9 @@ export function onCSVParsed(results) {
   document.getElementById("time-period-selector-container").style.display =
     "block";
 
+  const accountStatsElement = document.getElementById(
+    "account-stats-container"
+  );
   stats.forEach((stat) => {
     const p = document.createElement("p");
     p.textContent = `${stat.label}: ${stat.value}`;
@@ -150,8 +166,23 @@ function handleExerciseSelection(event) {
     renderWorkoutTimeBarChart();
     renderWorkoutDayOfWeekBarChart();
     renderVolumeChart();
-    renderMuscleGroupChart();
-    renderConsistencyChart();
-    renderMuscleGroupOverTimeChart();
   }
+}
+
+// Helper function to get display weight
+export function getDisplayWeight(weightKg) {
+  if (isUsingLbs) {
+    return (parseFloat(weightKg) * 2.20462).toFixed(1);
+  }
+  return parseFloat(weightKg).toFixed(1);
+}
+
+// Helper function to get weight unit for display
+export function getWeightUnit() {
+  return weightUnit;
+}
+
+// Helper function to get volume unit for display
+export function getVolumeUnit() {
+  return isUsingLbs ? "lbs" : "KG";
 }

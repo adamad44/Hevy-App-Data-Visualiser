@@ -15,7 +15,12 @@ import {
   getConsistencyHistoryData,
   getSetCountsByMuscleGroupOverTime,
 } from "./calculations.js";
-import { workouts } from "./parser.js";
+import {
+  workouts,
+  getWeightUnit,
+  getVolumeUnit,
+  getDisplayWeight,
+} from "./parser.js";
 
 export async function render1RMCharts(exerciseName, timeFrame) {
   let selectedFrame = "all time";
@@ -131,7 +136,7 @@ export async function render1RMCharts(exerciseName, timeFrame) {
           beginAtZero: false,
           title: {
             display: true,
-            text: "Weight (kg)",
+            text: `Weight (${getWeightUnit()})`,
             font: {
               size: 14,
               weight: "bold",
@@ -283,7 +288,7 @@ export async function renderHeaviestWeightCharts(exerciseName, timeFrame) {
           beginAtZero: false,
           title: {
             display: true,
-            text: "Weight (kg)",
+            text: `Weight (${getWeightUnit()})`,
             font: {
               size: 14,
               weight: "bold",
@@ -575,7 +580,8 @@ export async function renderVolumeChart() {
     let date = "";
     workout.forEach((set) => {
       if (set.reps && set.weight_kg) {
-        workoutVolume += set.reps * set.weight_kg;
+        const displayWeight = parseFloat(getDisplayWeight(set.weight_kg));
+        workoutVolume += set.reps * displayWeight;
         date = set.start_time;
       }
     });
@@ -622,7 +628,7 @@ export async function renderVolumeChart() {
       labels: dates,
       datasets: [
         {
-          label: "volume (KG)",
+          label: `volume (${getVolumeUnit()})`,
           data: volumes,
           borderColor: "#3b82f6",
           backgroundColor: "rgba(59, 130, 246, 0.1)",
@@ -649,7 +655,7 @@ export async function renderVolumeChart() {
       plugins: {
         title: {
           display: true,
-          text: `volume/workout`,
+          text: `Volume/workout`,
           font: {
             size: 18,
             weight: "bold",
@@ -678,7 +684,7 @@ export async function renderVolumeChart() {
           beginAtZero: false,
           title: {
             display: true,
-            text: "volume (KG)",
+            text: `Volume (${getVolumeUnit()})`,
             font: {
               size: 14,
               weight: "bold",
