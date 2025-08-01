@@ -1109,6 +1109,7 @@ export async function renderMuscleGroupOverTimeChart() {
   const muscleGroupOverTimeData = getSetCountsByMuscleGroupOverTime();
 
   muscleGroupOverTimeData.sort((a, b) => new Date(a.month) - new Date(b.month));
+  muscleGroupOverTimeData.reverse();
   const months = muscleGroupOverTimeData.map((item) => item.month);
 
   const allMuscleGroups = [];
