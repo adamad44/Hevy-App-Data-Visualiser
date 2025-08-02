@@ -22,64 +22,49 @@ import {
   getDisplayWeight,
 } from "./parser.js";
 
-export async function render1RMCharts(exerciseName, timeFrame) {
-  let selectedFrame = "all time";
-  let history = get1RMHistory(exerciseName);
-  history.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  if (timeFrame !== "all") {
-    const today = new Date();
-    let startDate;
-    if (timeFrame === "90") {
-      selectedFrame = "past 90 days";
-      startDate = new Date(today.setDate(today.getDate() - 90));
-    } else if (timeFrame === "365") {
-      selectedFrame = "past year";
-      startDate = new Date(today.setDate(today.getDate() - 365));
-    }
-    history = history.filter((item) => new Date(item.date) >= startDate);
-  }
-
-  let dates = [];
-  let weights = [];
-
-  history.forEach((obj) => {
-    dates.push(obj.date);
-    weights.push(obj.weight);
-  });
-
-  const movingAverageData = calculateMovingAverage(weights, 10);
+export async function renderChart(
+  title,
+  yLabel,
+  lineLabel,
+  xData,
+  yData,
+  exerciseName,
+  timeFrame,
+  hoverLabel,
+  chartId = null
+) {
+  const movingAverageData = calculateMovingAverage(yData, 10);
 
   const chartContainer = document.createElement("div");
   chartContainer.className = "chart-container";
 
   const chartCanvas = document.createElement("canvas");
   chartCanvas.className = "chart-1rm";
-  chartCanvas.id = `chart-${exerciseName}`;
+  chartCanvas.id = chartId || `chart-${exerciseName}`;
 
   chartContainer.appendChild(chartCanvas);
 
   const chartsContainer = document.getElementById("charts-container");
   chartsContainer.appendChild(chartContainer);
 
-  const ctx = document.getElementById(`chart-${exerciseName}`);
+  const ctx = document.getElementById(chartCanvas.id);
 
-  const maxIndex = weights.indexOf(Math.max(...weights));
-  const pointBackgroundColors = weights.map((_, i) =>
+  const maxIndex = yData.indexOf(Math.max(...yData));
+  const pointBackgroundColors = yData.map((_, i) =>
     i === maxIndex && timeFrame === "all" ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
   );
-  const pointBorderColors = weights.map((_, i) =>
+  const pointBorderColors = yData.map((_, i) =>
     i === maxIndex && timeFrame === "all" ? "#ef4444" : "#0b70ebff"
   );
 
   new Chart(ctx, {
     type: "line",
     data: {
-      labels: dates,
+      labels: xData,
       datasets: [
         {
-          label: "1RM",
-          data: weights,
+          label: hoverLabel,
+          data: yData,
           borderColor: "#3b82f6",
           backgroundColor: "rgba(59, 130, 246, 0.1)",
           pointBackgroundColor: pointBackgroundColors,
@@ -107,7 +92,7 @@ export async function render1RMCharts(exerciseName, timeFrame) {
       plugins: {
         title: {
           display: true,
-          text: `1RM Progress for ${exerciseName} (${selectedFrame})`,
+          text: title,
           font: {
             size: 18,
             weight: "bold",
@@ -136,7 +121,7 @@ export async function render1RMCharts(exerciseName, timeFrame) {
           beginAtZero: false,
           title: {
             display: true,
-            text: `Weight (${getWeightUnit()})`,
+            text: yLabel,
             font: {
               size: 14,
               weight: "bold",
@@ -172,6 +157,44 @@ export async function render1RMCharts(exerciseName, timeFrame) {
       },
     },
   });
+}
+
+export async function render1RMCharts(exerciseName, timeFrame) {
+  let selectedFrame = "all time";
+  let history = get1RMHistory(exerciseName);
+  history.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  if (timeFrame !== "all") {
+    const today = new Date();
+    let startDate;
+    if (timeFrame === "90") {
+      selectedFrame = "past 90 days";
+      startDate = new Date(today.setDate(today.getDate() - 90));
+    } else if (timeFrame === "365") {
+      selectedFrame = "past year";
+      startDate = new Date(today.setDate(today.getDate() - 365));
+    }
+    history = history.filter((item) => new Date(item.date) >= startDate);
+  }
+
+  let dates = [];
+  let weights = [];
+
+  history.forEach((obj) => {
+    dates.push(obj.date);
+    weights.push(obj.weight);
+  });
+
+  renderChart(
+    `1RM for ${exerciseName} (${selectedFrame})`,
+    `Weight (${getWeightUnit()})`,
+    "1RM",
+    dates,
+    weights,
+    exerciseName,
+    timeFrame,
+    "1RM"
+  );
 }
 
 export async function renderHeaviestWeightCharts(exerciseName, timeFrame) {
@@ -200,130 +223,17 @@ export async function renderHeaviestWeightCharts(exerciseName, timeFrame) {
     weights.push(obj.weight);
   });
 
-  const movingAverageData = calculateMovingAverage(weights, 10);
-
-  const chartContainer = document.createElement("div");
-  chartContainer.className = "chart-container";
-
-  const chartCanvas = document.createElement("canvas");
-  chartCanvas.className = "chart-1rm";
-  chartCanvas.id = `chart-weight-${exerciseName}`;
-
-  chartContainer.appendChild(chartCanvas);
-
-  const chartsContainer = document.getElementById("charts-container");
-  chartsContainer.appendChild(chartContainer);
-
-  const ctx = document.getElementById(`chart-weight-${exerciseName}`);
-
-  const maxIndex = weights.indexOf(Math.max(...weights));
-  const pointBackgroundColors = weights.map((_, i) =>
-    i === maxIndex && timeFrame === "all" ? "rgba(239, 68, 68, 0.8)" : "#3b82f6"
+  renderChart(
+    `Weight Progress for ${exerciseName} (${selectedFrame})`,
+    `Weight (${getWeightUnit()})`,
+    "Weight",
+    dates,
+    weights,
+    exerciseName,
+    timeFrame,
+    "weight",
+    `chart-weight-${exerciseName}`
   );
-  const pointBorderColors = weights.map((_, i) =>
-    i === maxIndex && timeFrame === "all" ? "#ef4444" : "#0b70ebff"
-  );
-
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: dates,
-      datasets: [
-        {
-          label: "weight",
-          data: weights,
-          borderColor: "#3b82f6",
-          backgroundColor: "rgba(59, 130, 246, 0.1)",
-          pointBackgroundColor: pointBackgroundColors,
-          pointBorderColor: pointBorderColors,
-          borderWidth: 2,
-          fill: true,
-          tension: 0.2,
-        },
-        {
-          label: "Moving Average",
-          data: movingAverageData,
-          borderColor: "#ef4444",
-          backgroundColor: "transparent",
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: `Weight Progress for ${exerciseName} (${selectedFrame})`,
-          font: {
-            size: 18,
-            weight: "bold",
-          },
-          color: "#ffffffff",
-          padding: 20,
-        },
-        legend: {
-          display: true,
-          labels: {
-            color: "#ffffffff",
-            font: {
-              size: 12,
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          display: false,
-          grid: {
-            display: false,
-          },
-        },
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: `Weight (${getWeightUnit()})`,
-            font: {
-              size: 14,
-              weight: "bold",
-            },
-            color: "#f4f4f4ff",
-          },
-          grid: {
-            color: "rgba(156, 163, 175, 0.2)",
-          },
-          ticks: {
-            color: "#ffffffff",
-            font: {
-              size: 12,
-            },
-          },
-        },
-      },
-      interaction: {
-        intersect: false,
-        mode: "index",
-      },
-      elements: {
-        point: {
-          radius: 4,
-          hoverRadius: 6,
-          backgroundColor: "#3b82f6",
-          borderColor: "#ffffff",
-          borderWidth: 2,
-        },
-        line: {
-          borderWidth: 2,
-        },
-      },
-    },
-  });
 }
 
 export async function renderRepsCharts(exerciseName, timeFrame) {
@@ -352,121 +262,19 @@ export async function renderRepsCharts(exerciseName, timeFrame) {
     reps.push(obj.reps);
   });
 
-  const movingAverageData = calculateMovingAverage(reps, 20);
-
-  const chartContainer = document.createElement("div");
-  chartContainer.className = "chart-container";
-
-  const chartCanvas = document.createElement("canvas");
-  chartCanvas.className = "chart-1rm";
-  chartCanvas.id = `chart-reps-${exerciseName}`;
-
-  chartContainer.appendChild(chartCanvas);
-
-  const chartsContainer = document.getElementById("charts-container");
-  chartsContainer.appendChild(chartContainer);
-
-  const ctx = document.getElementById(`chart-reps-${exerciseName}`);
-
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: dates,
-      datasets: [
-        {
-          label: "reps",
-          data: reps,
-          borderColor: "#3b82f6",
-          backgroundColor: "rgba(59, 130, 246, 0.1)",
-          borderWidth: 2,
-          fill: true,
-          tension: 0.2,
-        },
-        {
-          label: "Moving Average",
-          data: movingAverageData,
-          borderColor: "#ef4444",
-          backgroundColor: "transparent",
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: `reps/set for ${exerciseName} (${selectedFrame})`,
-          font: {
-            size: 18,
-            weight: "bold",
-          },
-          color: "#ffffffff",
-          padding: 20,
-        },
-        legend: {
-          display: true,
-          labels: {
-            color: "#ffffffff",
-            font: {
-              size: 12,
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          display: false,
-          grid: {
-            display: false,
-          },
-        },
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: "reps",
-            font: {
-              size: 14,
-              weight: "bold",
-            },
-            color: "#f4f4f4ff",
-          },
-          grid: {
-            color: "rgba(156, 163, 175, 0.2)",
-          },
-          ticks: {
-            color: "#ffffffff",
-            font: {
-              size: 12,
-            },
-          },
-        },
-      },
-      interaction: {
-        intersect: false,
-        mode: "index",
-      },
-      elements: {
-        point: {
-          radius: 4,
-          hoverRadius: 6,
-          backgroundColor: "#3b82f6",
-          borderColor: "#ffffff",
-          borderWidth: 2,
-        },
-        line: {
-          borderWidth: 2,
-        },
-      },
-    },
-  });
+  renderChart(
+    `Reps/set for ${exerciseName} (${selectedFrame})`,
+    "Reps",
+    "Reps per set",
+    dates,
+    reps,
+    exerciseName,
+    timeFrame,
+    "reps",
+    `chart-reps-${exerciseName}`
+  );
 }
+
 export async function renderWorkoutTimeBarChart() {
   const workoutTimes = getTimesOfDays();
 
