@@ -22,6 +22,18 @@ import {
   getDisplayWeight,
 } from "./parser.js";
 
+function getDynamicMovingAveragePeriod(numberOfDataPoints) {
+  return numberOfDataPoints < 15
+    ? 3
+    : numberOfDataPoints < 40
+    ? 5
+    : numberOfDataPoints < 100
+    ? 10
+    : numberOfDataPoints < 250
+    ? 15
+    : 20;
+}
+
 export async function renderChart(
   title,
   yLabel,
@@ -33,7 +45,11 @@ export async function renderChart(
   hoverLabel,
   chartId = null
 ) {
-  const movingAverageData = calculateMovingAverage(yData, 10);
+  const dataPointsNumber = yData.length;
+  const movingAverageData = calculateMovingAverage(
+    yData,
+    getDynamicMovingAveragePeriod(dataPointsNumber)
+  );
 
   const chartContainer = document.createElement("div");
   chartContainer.className = "chart-container";
@@ -421,7 +437,10 @@ export async function renderVolumeChart() {
   chartCanvas.className = "chart-volumes";
   chartCanvas.id = `chart-volumes`;
 
-  const movingAverageData = calculateMovingAverage(volumes, 20);
+  const movingAverageData = calculateMovingAverage(
+    volumes,
+    getDynamicMovingAveragePeriod(volumes.length)
+  );
 
   chartContainer.appendChild(chartCanvas);
 
@@ -740,7 +759,10 @@ export async function renderConsistencyChart() {
 
   const months = monthsData.map((obj) => obj.month);
   const counts = monthsData.map((obj) => obj.count);
-  const movingAvg = calculateMovingAverage(counts, 3);
+  const movingAvg = calculateMovingAverage(
+    counts,
+    getDynamicMovingAveragePeriod(counts.length)
+  );
 
   const performanceStatus = counts.map((count, i) =>
     i >= 3 && count > movingAvg[i] ? "above" : "below"
