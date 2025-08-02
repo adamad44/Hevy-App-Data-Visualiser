@@ -35,9 +35,20 @@ export let weightUnit = "kg"; // Default unit
 export let isUsingLbs = false;
 
 export function onCSVParsed(results) {
+  workouts = [];
+  listOfExercises = {};
+  listOfExerciseNames = [];
+
+  const accountStatsElement = document.getElementById(
+    "account-stats-container"
+  );
+  accountStatsElement.innerHTML = "";
+
+  const chartsContainer = document.getElementById("charts-container");
+  chartsContainer.innerHTML = "";
+
   const rows = results.data;
 
-  // Detect weight unit from CSV headers
   if (rows.length > 0) {
     const headers = Object.keys(rows[0]);
     if (headers.includes("weight_lbs")) {
@@ -52,7 +63,6 @@ export function onCSVParsed(results) {
   let temp = [];
 
   rows.forEach((row, index) => {
-    // Normalize weight to kg for internal calculations
     let normalizedRow = { ...row };
     if (isUsingLbs && row.weight_lbs) {
       normalizedRow.weight_kg = (parseFloat(row.weight_lbs) / 2.20462).toFixed(
@@ -119,9 +129,6 @@ export function onCSVParsed(results) {
   document.getElementById("time-period-selector-container").style.display =
     "block";
 
-  const accountStatsElement = document.getElementById(
-    "account-stats-container"
-  );
   stats.forEach((stat) => {
     const p = document.createElement("p");
     p.textContent = `${stat.label}: ${stat.value}`;
