@@ -14,6 +14,7 @@ import {
   getAvgVolumePerWorkout,
   getSetCountsByMuscleGroup,
   getConsistencyHistoryData,
+  mainPRCountLogic,
 } from "./calculations.js";
 
 import {
@@ -26,6 +27,7 @@ import {
   renderMuscleGroupChart,
   renderConsistencyChart,
   renderMuscleGroupOverTimeChart,
+  renderPRCountChart,
 } from "./charts.js";
 
 export let listOfExerciseNames = [];
@@ -140,6 +142,7 @@ export function onCSVParsed(results) {
   renderMuscleGroupChart();
   renderConsistencyChart();
   renderMuscleGroupOverTimeChart();
+  renderPRCountChart();
 }
 
 function populateExerciseDropdown() {
@@ -174,10 +177,10 @@ function handleExerciseSelection(event) {
     renderWorkoutDayOfWeekBarChart();
     renderVolumeChart();
     renderMuscleGroupOverTimeChart();
+    renderPRCountChart();
   }
 }
 
-// Helper function to get display weight
 export function getDisplayWeight(weightKg) {
   if (isUsingLbs) {
     return (parseFloat(weightKg) * 2.20462).toFixed(1);
@@ -185,12 +188,10 @@ export function getDisplayWeight(weightKg) {
   return parseFloat(weightKg).toFixed(1);
 }
 
-// Helper function to get weight unit for display
 export function getWeightUnit() {
   return weightUnit;
 }
 
-// Helper function to get volume unit for display
 export function getVolumeUnit() {
   return isUsingLbs ? "lbs" : "KG";
 }

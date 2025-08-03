@@ -14,6 +14,7 @@ import {
   getSetCountsByMuscleGroup,
   getConsistencyHistoryData,
   getSetCountsByMuscleGroupOverTime,
+  mainPRCountLogic,
 } from "./calculations.js";
 import {
   workouts,
@@ -935,6 +936,126 @@ export async function renderConsistencyChart() {
     },
   });
 }
+
+export async function renderPRCountChart() {
+  const prData = mainPRCountLogic();
+
+  prData.sort((a, b) => new Date(a.month) - new Date(b.month));
+
+  const months = prData.map((item) => item.month);
+  const prCounts = prData.map((item) => item.prCount);
+
+  const chartContainer = document.createElement("div");
+  chartContainer.className = "chart-container";
+
+  const chartCanvas = document.createElement("canvas");
+  chartCanvas.id = "chart-pr-count";
+  chartContainer.appendChild(chartCanvas);
+
+  const chartsContainer = document.getElementById("charts-container");
+  chartsContainer.appendChild(chartContainer);
+
+  const ctx = document.getElementById("chart-pr-count");
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: "Personal Records",
+          data: prCounts,
+          backgroundColor: prCounts.map((count, i) => {
+            if (count === Math.max(...prCounts)) {
+              return "rgba(34, 197, 94, 0.8)"; // Green for highest
+            } else if (count === 0) {
+              return "rgba(239, 68, 68, 0.5)"; // Red for zero
+            } else {
+              return "rgba(59, 130, 246, 0.7)"; // Blue for others
+            }
+          }),
+          borderColor: prCounts.map((count, i) => {
+            if (count === Math.max(...prCounts)) {
+              return "#22c55e";
+            } else if (count === 0) {
+              return "#ef4444";
+            } else {
+              return "#3b82f6";
+            }
+          }),
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "Personal Records Achieved Per Month",
+          font: { size: 18, weight: "bold" },
+          color: "#ffffffff",
+          padding: 20,
+        },
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const count = context.raw;
+              if (count === 0) {
+                return "No PRs achieved this month";
+              } else if (count === 1) {
+                return "1 Personal Record";
+              } else {
+                return `${count} Personal Records`;
+              }
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Number of PRs",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: {
+            color: "rgba(156, 163, 175, 0.2)",
+          },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 12 },
+            stepSize: 1,
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Month",
+            font: { size: 14, weight: "bold" },
+            color: "#f4f4f4ff",
+          },
+          grid: {
+            display: false,
+          },
+          ticks: {
+            color: "#ffffffff",
+            font: { size: 12 },
+            maxRotation: 60,
+            minRotation: 60,
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function renderMuscleGroupOverTimeChart() {
   const muscleGroupOverTimeData = getSetCountsByMuscleGroupOverTime();
 

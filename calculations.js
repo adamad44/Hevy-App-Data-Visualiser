@@ -500,3 +500,78 @@ function getHighestWeightForExerciseInMonth(exerciseName, month, dataByMonth) {
 
   return highest;
 }
+export function mainPRCountLogic() {
+  const [dataByMonth, template] = getPRCountPerMonthTemplate();
+  const sortedMonths = Object.keys(dataByMonth).sort(
+    (a, b) => new Date("1 " + a) - new Date("1 " + b)
+  );
+
+  let allTimeRecords = [];
+  listOfExerciseNames.forEach((name) => {
+    allTimeRecords.push({ exerciseName: name, heaviestWeight: 0, maxPR: 0 });
+  });
+
+  sortedMonths.forEach((month) => {
+    let PRNumber = 0;
+    dataByMonth[month].forEach((set) => {
+      let obj = allTimeRecords.find(
+        (record) => record.exerciseName === set.exercise_title
+      );
+      if (Number(set.weight_kg) > obj.heaviestWeight) {
+        obj.heaviestWeight = Number(set.weight_kg);
+        PRNumber++;
+      }
+      let estimated1RM = estimate1RM(Number(set.weight_kg), set.reps);
+      if (estimated1RM > obj.maxPR) {
+        obj.maxPR = estimated1RM;
+        PRNumber++;
+      }
+    });
+    let templateObj = template.find((record) => record.month === month);
+    if (templateObj) {
+      templateObj.prCount = PRNumber;
+    }
+  });
+  return template;
+}
+
+export function getPRCountPerMonthTemplate() {
+  const dataByMonth = {};
+
+  workouts.forEach((workout) => {
+    workout.forEach((set) => {
+      if (set.set_type === "warmup" || !set.exercise_title) return;
+
+      const month = new Date(set.start_time).toLocaleString("default", {
+        month: "long",
+        year: "numeric",
+      });
+
+      if (!dataByMonth[month]) {
+        dataByMonth[month] = [];
+      }
+      dataByMonth[month].push(set);
+    });
+  });
+
+  const monthsSorted = Object.keys(dataByMonth).sort(
+    (a, b) => new Date("1 " + a) - new Date("1 " + b)
+  );
+
+  const prCounts = [];
+
+  for (let i = 0; i < monthsSorted.length; i++) {
+    const currentMonth = monthsSorted[i];
+    const prevMonth = monthsSorted[i - 1];
+
+    const exercises = new Set(
+      dataByMonth[currentMonth].map((set) => set.exercise_title)
+    );
+
+    let prCount = 0;
+
+    prCounts.push({ month: currentMonth, prCount });
+  }
+
+  return [dataByMonth, prCounts];
+}
