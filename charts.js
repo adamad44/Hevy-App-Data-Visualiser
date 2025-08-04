@@ -756,7 +756,9 @@ export async function renderMuscleGroupChart() {
 
 export async function renderConsistencyChart() {
   const monthsData = getConsistencyHistoryData();
-  monthsData.sort((a, b) => new Date(a.month) - new Date(b.month));
+  monthsData.sort(
+    (a, b) => new Date(a.month + " 1") - new Date(b.month + " 1")
+  );
 
   const months = monthsData.map((obj) => obj.month);
   const counts = monthsData.map((obj) => obj.count);
@@ -940,7 +942,7 @@ export async function renderConsistencyChart() {
 export async function renderPRCountChart() {
   const prData = mainPRCountLogic();
 
-  prData.sort((a, b) => new Date(a.month) - new Date(b.month));
+  prData.sort((a, b) => new Date(a.month + " 1") - new Date(b.month + " 1"));
 
   const months = prData.map((item) => item.month);
   const prCounts = prData.map((item) => item.prCount);
@@ -1059,7 +1061,9 @@ export async function renderPRCountChart() {
 export async function renderMuscleGroupOverTimeChart() {
   const muscleGroupOverTimeData = getSetCountsByMuscleGroupOverTime();
 
-  muscleGroupOverTimeData.sort((a, b) => new Date(a.month) - new Date(b.month));
+  muscleGroupOverTimeData.sort(
+    (a, b) => new Date(a.month + " 1") - new Date(b.month + " 1")
+  );
   const months = muscleGroupOverTimeData.map((item) => item.month);
 
   const allMuscleGroups = [];

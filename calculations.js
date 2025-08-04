@@ -409,7 +409,7 @@ export function getConsistencyHistoryData() {
     count: monthCounts[monthKey],
   }));
 
-  months.sort((a, b) => new Date(a.month) - new Date(b.month));
+  months.sort((a, b) => new Date(a.month + " 1") - new Date(b.month + " 1"));
 
   return months;
 }
