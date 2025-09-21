@@ -17,26 +17,21 @@ import {
   mainPRCountLogic,
 } from "./calculations.js";
 
-import {
-  render1RMCharts,
-  renderHeaviestWeightCharts,
-  renderWorkoutTimeBarChart,
-  renderRepsCharts,
-  renderVolumeChart,
-  renderWorkoutDayOfWeekBarChart,
-  renderMuscleGroupChart,
-  renderConsistencyChart,
-  renderMuscleGroupOverTimeChart,
-  renderPRCountChart,
-} from "./charts.js";
+import { loadChartsModule } from "./chart-loader.js";
 
 export let listOfExerciseNames = [];
 export let workouts = [];
 export let listOfExercises = {};
-export let weightUnit = "kg"; // Default unit
+export let weightUnit = "kg";
 export let isUsingLbs = false;
+let chartsModule;
 
-export function onCSVParsed(results) {
+export async function onCSVParsed(results) {
+  if (!chartsModule) {
+    chartsModule = await loadChartsModule();
+  }
+
+  document.getElementById("intro-title").style.display = "none";
   workouts = [];
   listOfExercises = {};
   listOfExerciseNames = [];
@@ -136,13 +131,13 @@ export function onCSVParsed(results) {
     p.textContent = `${stat.label}: ${stat.value}`;
     accountStatsElement.appendChild(p);
   });
-  renderWorkoutTimeBarChart();
-  renderWorkoutDayOfWeekBarChart();
-  renderVolumeChart();
-  renderMuscleGroupChart();
-  renderConsistencyChart();
-  renderMuscleGroupOverTimeChart();
-  renderPRCountChart();
+  chartsModule.renderWorkoutTimeBarChart();
+  chartsModule.renderWorkoutDayOfWeekBarChart();
+  chartsModule.renderVolumeChart();
+  chartsModule.renderMuscleGroupChart();
+  chartsModule.renderConsistencyChart();
+  chartsModule.renderMuscleGroupOverTimeChart();
+  chartsModule.renderPRCountChart();
 }
 
 function populateExerciseDropdown() {
@@ -162,7 +157,11 @@ function populateExerciseDropdown() {
   select.addEventListener("change", handleExerciseSelection);
 }
 
-function handleExerciseSelection(event) {
+async function handleExerciseSelection(event) {
+  if (!chartsModule) {
+    chartsModule = await loadChartsModule();
+  }
+
   const selectedExercise = document.getElementById("exercise-select").value;
   const selectedTimeFrame = document.getElementById("time-select").value;
 
@@ -170,14 +169,17 @@ function handleExerciseSelection(event) {
     const chartsContainer = document.getElementById("charts-container");
     chartsContainer.innerHTML = "";
 
-    render1RMCharts(selectedExercise, selectedTimeFrame);
-    renderHeaviestWeightCharts(selectedExercise, selectedTimeFrame);
-    renderRepsCharts(selectedExercise, selectedTimeFrame);
-    renderWorkoutTimeBarChart();
-    renderWorkoutDayOfWeekBarChart();
-    renderVolumeChart();
-    renderMuscleGroupOverTimeChart();
-    renderPRCountChart();
+    chartsModule.render1RMCharts(selectedExercise, selectedTimeFrame);
+    chartsModule.renderHeaviestWeightCharts(
+      selectedExercise,
+      selectedTimeFrame
+    );
+    chartsModule.renderRepsCharts(selectedExercise, selectedTimeFrame);
+    chartsModule.renderWorkoutTimeBarChart();
+    chartsModule.renderWorkoutDayOfWeekBarChart();
+    chartsModule.renderVolumeChart();
+    chartsModule.renderMuscleGroupOverTimeChart();
+    chartsModule.renderPRCountChart();
   }
 }
 
@@ -194,4 +196,30 @@ export function getWeightUnit() {
 
 export function getVolumeUnit() {
   return isUsingLbs ? "lbs" : "KG";
+}
+
+export function sortMonths(monthsData) {
+  const monthOrder = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  monthsData.sort((a, b) => {
+    const [aMonth, aYear] = a.month.split(" ");
+    const [bMonth, bYear] = b.month.split(" ");
+    const aIdx = monthOrder.indexOf(aMonth);
+    const bIdx = monthOrder.indexOf(bMonth);
+
+    return new Date(aYear, aIdx) - new Date(bYear, bIdx);
+  });
 }

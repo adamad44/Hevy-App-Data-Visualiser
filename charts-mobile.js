@@ -9,7 +9,6 @@ import {
   getExerciseSessionVolumeHistory,
   getAvgRepRangeList,
   getTimesOfDays,
-  calculateMovingAverage,
   getDaysOfWeekWorkoutWeighted,
   getSetCountsByMuscleGroup,
   getConsistencyHistoryData,
@@ -24,18 +23,6 @@ import {
   sortMonths,
 } from "./parser.js";
 
-function getDynamicMovingAveragePeriod(numberOfDataPoints) {
-  return numberOfDataPoints < 15
-    ? 3
-    : numberOfDataPoints < 40
-    ? 5
-    : numberOfDataPoints < 100
-    ? 10
-    : numberOfDataPoints < 250
-    ? 15
-    : 20;
-}
-
 export async function renderChart(
   title,
   yLabel,
@@ -48,10 +35,6 @@ export async function renderChart(
   chartId = null
 ) {
   const dataPointsNumber = yData.length;
-  const movingAverageData = calculateMovingAverage(
-    yData,
-    getDynamicMovingAveragePeriod(dataPointsNumber)
-  );
 
   const chartContainer = document.createElement("div");
   chartContainer.className = "chart-container";
@@ -91,17 +74,6 @@ export async function renderChart(
           fill: true,
           tension: 0.2,
         },
-        {
-          label: "Moving Average",
-          data: movingAverageData,
-          borderColor: "#ef4444",
-          backgroundColor: "transparent",
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-        },
       ],
     },
     options: {
@@ -110,9 +82,9 @@ export async function renderChart(
       plugins: {
         title: {
           display: true,
-          text: title,
+          text: `${title} (${yLabel})`,
           font: {
-            size: 18,
+            size: 14,
             weight: "bold",
           },
           color: "#ffffffff",
@@ -127,6 +99,12 @@ export async function renderChart(
             },
           },
         },
+        tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
+        },
       },
       scales: {
         x: {
@@ -138,13 +116,7 @@ export async function renderChart(
         y: {
           beginAtZero: false,
           title: {
-            display: true,
-            text: yLabel,
-            font: {
-              size: 14,
-              weight: "bold",
-            },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             color: "rgba(156, 163, 175, 0.2)",
@@ -152,7 +124,7 @@ export async function renderChart(
           ticks: {
             color: "#ffffffff",
             font: {
-              size: 12,
+              size: 10,
             },
           },
         },
@@ -160,6 +132,11 @@ export async function renderChart(
       interaction: {
         intersect: false,
         mode: "index",
+        axis: "x",
+      },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
       },
       elements: {
         point: {
@@ -172,15 +149,47 @@ export async function renderChart(
         line: {
           borderWidth: 2,
         },
-        events: ["mousemove", "mouseout", "touchstart", "touchmove"],
       },
     },
   });
 
-  newChart.canvas.addEventListener("touchend", () => {
+  newChart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = newChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: false },
+      false
+    );
+    if (elements.length > 0) {
+      newChart.setActiveElements(elements);
+      newChart.update("none");
+    }
+  });
+
+  newChart.canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    const elements = newChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: false },
+      false
+    );
+    if (elements.length > 0) {
+      newChart.setActiveElements(elements);
+      newChart.update("none");
+    }
+  });
+
+  newChart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
     newChart.setActiveElements([]);
     newChart.tooltip.setActiveElements([], { x: 0, y: 0 });
-    newChart.update();
+    newChart.update("none");
+  });
+
+  newChart.canvas.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
   });
 }
 
@@ -333,7 +342,7 @@ export async function renderWorkoutTimeBarChart() {
 
   const ctx = document.getElementById("chart-workout-times");
 
-  new Chart(ctx, {
+  const workoutTimeChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: labels,
@@ -341,11 +350,10 @@ export async function renderWorkoutTimeBarChart() {
         {
           label: "Number of Workouts",
           data: hourCounts,
-          backgroundColor: hourCounts.map(
-            (count, i) =>
-              i === hourCounts.indexOf(Math.max(...hourCounts))
-                ? "rgba(239, 68, 68, 0.8)" // highlight color (red)
-                : "rgba(59, 130, 246, 0.5)" // default color (blue)
+          backgroundColor: hourCounts.map((count, i) =>
+            i === hourCounts.indexOf(Math.max(...hourCounts))
+              ? "rgba(239, 68, 68, 0.8)"
+              : "rgba(59, 130, 246, 0.5)"
           ),
           borderColor: "#3b82f6",
           borderWidth: 1,
@@ -358,51 +366,76 @@ export async function renderWorkoutTimeBarChart() {
       plugins: {
         title: {
           display: true,
-          text: `Workout Frequency by Hour`,
-          font: { size: 18, weight: "bold" },
+          text: `Workout Frequency by Hour (Number of Workouts)`,
+          font: { size: 14, weight: "bold" },
           color: "#ffffffff",
           padding: 20,
         },
         legend: {
           display: false,
         },
+        tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
+        },
+      },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
       },
       scales: {
         y: {
           beginAtZero: true,
           title: {
-            display: true,
-            text: "Frequency (Number of Workouts)",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             color: "rgba(156, 163, 175, 0.2)",
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
           },
         },
         x: {
           title: {
-            display: true,
-            text: "Hour of Day",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             display: false,
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
             maxRotation: 60,
             minRotation: 60,
           },
         },
       },
     },
+  });
+
+  workoutTimeChart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = workoutTimeChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      false
+    );
+    if (elements.length > 0) {
+      workoutTimeChart.setActiveElements(elements);
+      workoutTimeChart.update("none");
+    }
+  });
+
+  workoutTimeChart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    workoutTimeChart.setActiveElements([]);
+    workoutTimeChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    workoutTimeChart.update("none");
   });
 }
 
@@ -446,11 +479,6 @@ export async function renderVolumeChart() {
   chartCanvas.className = "chart-volumes";
   chartCanvas.id = `chart-volumes`;
 
-  const movingAverageData = calculateMovingAverage(
-    volumes,
-    getDynamicMovingAveragePeriod(volumes.length)
-  );
-
   chartContainer.appendChild(chartCanvas);
 
   const chartsContainer = document.getElementById("charts-container");
@@ -458,8 +486,8 @@ export async function renderVolumeChart() {
 
   const ctx = document.getElementById(`chart-volumes`);
 
-  new Chart(ctx, {
-    type: "line",
+  const volumeChart = new Chart(ctx, {
+    type: "bar",
     data: {
       labels: dates,
       datasets: [
@@ -472,17 +500,6 @@ export async function renderVolumeChart() {
           fill: true,
           tension: 0.2,
         },
-        {
-          label: "Moving Average",
-          data: movingAverageData,
-          borderColor: "#ef4444",
-          backgroundColor: "transparent",
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-        },
       ],
     },
     options: {
@@ -491,9 +508,9 @@ export async function renderVolumeChart() {
       plugins: {
         title: {
           display: true,
-          text: `Volume/workout`,
+          text: `Volume/workout (${getVolumeUnit()})`,
           font: {
-            size: 18,
+            size: 14,
             weight: "bold",
           },
           color: "#ffffffff",
@@ -508,6 +525,16 @@ export async function renderVolumeChart() {
             },
           },
         },
+        tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
+        },
+      },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
       },
       scales: {
         x: {
@@ -519,13 +546,7 @@ export async function renderVolumeChart() {
         y: {
           beginAtZero: false,
           title: {
-            display: true,
-            text: `Volume (${getVolumeUnit()})`,
-            font: {
-              size: 14,
-              weight: "bold",
-            },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             color: "rgba(156, 163, 175, 0.2)",
@@ -533,7 +554,7 @@ export async function renderVolumeChart() {
           ticks: {
             color: "#ffffffff",
             font: {
-              size: 12,
+              size: 10,
             },
           },
         },
@@ -541,6 +562,7 @@ export async function renderVolumeChart() {
       interaction: {
         intersect: false,
         mode: "index",
+        axis: "x",
       },
       elements: {
         point: {
@@ -555,6 +577,27 @@ export async function renderVolumeChart() {
         },
       },
     },
+  });
+
+  volumeChart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = volumeChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      false
+    );
+    if (elements.length > 0) {
+      volumeChart.setActiveElements(elements);
+      volumeChart.update("none");
+    }
+  });
+
+  volumeChart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    volumeChart.setActiveElements([]);
+    volumeChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    volumeChart.update("none");
   });
 }
 
@@ -580,7 +623,7 @@ export async function renderWorkoutDayOfWeekBarChart() {
 
   const ctx = document.getElementById("chart-workout-days");
 
-  new Chart(ctx, {
+  const dayOfWeekChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: days,
@@ -588,11 +631,10 @@ export async function renderWorkoutDayOfWeekBarChart() {
         {
           label: "Number of Workouts",
           data: workoutCounts,
-          backgroundColor: workoutCounts.map(
-            (count, i) =>
-              i === workoutCounts.indexOf(Math.max(...workoutCounts))
-                ? "rgba(239, 68, 68, 0.8)" // highlight color (red)
-                : "rgba(59, 130, 246, 0.5)" // default color (blue)
+          backgroundColor: workoutCounts.map((count, i) =>
+            i === workoutCounts.indexOf(Math.max(...workoutCounts))
+              ? "rgba(239, 68, 68, 0.8)"
+              : "rgba(59, 130, 246, 0.5)"
           ),
           borderColor: "#3b82f6",
           borderWidth: 1,
@@ -605,51 +647,76 @@ export async function renderWorkoutDayOfWeekBarChart() {
       plugins: {
         title: {
           display: true,
-          text: "Workout Frequency by day of week",
-          font: { size: 18, weight: "bold" },
+          text: "Workout Frequency by day of week (Number of Workouts)",
+          font: { size: 14, weight: "bold" },
           color: "#ffffffff",
           padding: 20,
         },
         legend: {
           display: false,
         },
+        tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
+        },
+      },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
       },
       scales: {
         y: {
           beginAtZero: true,
           title: {
-            display: true,
-            text: "Frequency (Number of Workouts)",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             color: "rgba(156, 163, 175, 0.2)",
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
           },
         },
         x: {
           title: {
-            display: true,
-            text: "Day",
-            font: { size: 18, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             display: false,
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
             maxRotation: 60,
             minRotation: 60,
           },
         },
       },
     },
+  });
+
+  dayOfWeekChart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = dayOfWeekChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      false
+    );
+    if (elements.length > 0) {
+      dayOfWeekChart.setActiveElements(elements);
+      dayOfWeekChart.update("none");
+    }
+  });
+
+  dayOfWeekChart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    dayOfWeekChart.setActiveElements([]);
+    dayOfWeekChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    dayOfWeekChart.update("none");
   });
 }
 
@@ -682,7 +749,7 @@ export async function renderMuscleGroupChart() {
 
   const ctx = document.getElementById("chart-muscle-groups");
 
-  new Chart(ctx, {
+  const muscleGroupChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: muscleGroups,
@@ -690,11 +757,8 @@ export async function renderMuscleGroupChart() {
         {
           label: "Sets Performed",
           data: setCounts,
-          backgroundColor: setCounts.map(
-            (_, i) =>
-              i === 0
-                ? "rgba(239, 68, 68, 0.8)" // highlight color (red)
-                : "rgba(59, 130, 246, 0.5)" // default color (blue)
+          backgroundColor: setCounts.map((_, i) =>
+            i === 0 ? "rgba(239, 68, 68, 0.8)" : "rgba(59, 130, 246, 0.5)"
           ),
           borderColor: "#3b82f6",
           borderWidth: 1,
@@ -707,8 +771,8 @@ export async function renderMuscleGroupChart() {
       plugins: {
         title: {
           display: true,
-          text: "Training Distribution by Muscle Group",
-          font: { size: 18, weight: "bold" },
+          text: "Training Distribution by Muscle Group (Number of Sets)",
+          font: { size: 14, weight: "bold" },
           color: "#ffffffff",
           padding: 20,
         },
@@ -716,6 +780,10 @@ export async function renderMuscleGroupChart() {
           display: false,
         },
         tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
           callbacks: {
             label: function (context) {
               return `${context.dataset.label}: ${context.raw} sets`;
@@ -723,42 +791,61 @@ export async function renderMuscleGroupChart() {
           },
         },
       },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
+      },
       scales: {
         y: {
           beginAtZero: true,
           title: {
-            display: true,
-            text: "Number of Sets",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             color: "rgba(156, 163, 175, 0.2)",
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
           },
         },
         x: {
           title: {
-            display: true,
-            text: "Muscle Group",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             display: false,
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
             maxRotation: 60,
             minRotation: 60,
           },
         },
       },
     },
+  });
+
+  muscleGroupChart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = muscleGroupChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      false
+    );
+    if (elements.length > 0) {
+      muscleGroupChart.setActiveElements(elements);
+      muscleGroupChart.update("none");
+    }
+  });
+
+  muscleGroupChart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    muscleGroupChart.setActiveElements([]);
+    muscleGroupChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    muscleGroupChart.update("none");
   });
 }
 
@@ -768,14 +855,6 @@ export async function renderConsistencyChart() {
 
   const months = monthsData.map((obj) => obj.month);
   const counts = monthsData.map((obj) => obj.count);
-  const movingAvg = calculateMovingAverage(
-    counts,
-    getDynamicMovingAveragePeriod(counts.length)
-  );
-
-  const performanceStatus = counts.map((count, i) =>
-    i >= 3 && count > movingAvg[i] ? "above" : "below"
-  );
 
   const chartContainer = document.createElement("div");
   chartContainer.className = "chart-container";
@@ -790,7 +869,7 @@ export async function renderConsistencyChart() {
 
   const ctx = document.getElementById("chart-consistency");
 
-  new Chart(ctx, {
+  const consistencyChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: months,
@@ -805,25 +884,8 @@ export async function renderConsistencyChart() {
               return "#1459c8ff";
             }
           }),
-          borderColor: counts.map((count, i) =>
-            i >= 3 && count > movingAvg[i] ? "#0f9d43ff" : "#3b82f6"
-          ),
-          borderWidth: counts.map((count, i) =>
-            i >= 3 && count > movingAvg[i] ? 2 : 1
-          ),
-          yAxisID: "y",
-        },
-        {
-          label: "Moving Average",
-          type: "line",
-          data: movingAvg,
-          borderColor: "#ef4444",
-          backgroundColor: "transparent",
-          borderWidth: 2,
-          fill: false,
-          tension: 0.3,
-          pointRadius: 0,
-          pointHoverRadius: 4,
+          borderColor: "rgba(239, 68, 68, 0.8)",
+          borderWidth: "rgba(239, 68, 68, 0.8)",
           yAxisID: "y",
         },
       ],
@@ -834,28 +896,17 @@ export async function renderConsistencyChart() {
       plugins: {
         title: {
           display: true,
-          text: `Workout Consistency (Workouts per Month) (AVG: ${Math.round(
+          text: `Workouts per Month (AVG: ${Math.round(
             avg
-          )})`,
-          font: { size: 18, weight: "bold" },
+          )}) - Number of Workouts`,
+          font: { size: 14, weight: "bold" },
           color: "#ffffffff",
           padding: {
             top: 20,
             bottom: 5,
           },
         },
-        subtitle: {
-          display: true,
-          text: "Keeping each bar above the moving average (green outline) ensures progression in consistency",
-          color: "#dddddd",
-          font: {
-            size: 12,
-            style: "italic",
-          },
-          padding: {
-            bottom: 20,
-          },
-        },
+
         legend: {
           display: true,
           labels: {
@@ -864,47 +915,32 @@ export async function renderConsistencyChart() {
           },
         },
         tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
           callbacks: {
             label: function (context) {
-              if (context.dataset.type === "line") {
-                return `Moving Avg: ${context.raw.toFixed(2)}`;
-              }
-
               const idx = context.dataIndex;
               const count = counts[idx];
-              const movingAvgValue = movingAvg[idx];
-
-              if (idx >= 3) {
-                if (count > movingAvgValue) {
-                  return [
-                    `Workouts: ${count}`,
-                    `Above average - Keep it up! 👍`,
-                  ];
-                } else {
-                  return [
-                    `Workouts: ${count}`,
-                    `Below average - Try to do more! 💪`,
-                  ];
-                }
-              }
-
               return `Workouts: ${count}`;
             },
           },
         },
       },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
+      },
       scales: {
         x: {
           title: {
-            display: true,
-            text: "Month",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: { display: false },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
             maxRotation: 60,
             minRotation: 60,
           },
@@ -913,21 +949,19 @@ export async function renderConsistencyChart() {
           beginAtZero: true,
           max: 31,
           title: {
-            display: true,
-            text: "Number of Workouts",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: { color: "rgba(156, 163, 175, 0.2)" },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
           },
         },
       },
       interaction: {
         intersect: false,
         mode: "index",
+        axis: "x",
       },
       elements: {
         point: {
@@ -942,6 +976,27 @@ export async function renderConsistencyChart() {
         },
       },
     },
+  });
+
+  consistencyChart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = consistencyChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      false
+    );
+    if (elements.length > 0) {
+      consistencyChart.setActiveElements(elements);
+      consistencyChart.update("none");
+    }
+  });
+
+  consistencyChart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    consistencyChart.setActiveElements([]);
+    consistencyChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    consistencyChart.update("none");
   });
 }
 
@@ -965,7 +1020,7 @@ export async function renderPRCountChart() {
 
   const ctx = document.getElementById("chart-pr-count");
 
-  new Chart(ctx, {
+  const prCountChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: months,
@@ -975,11 +1030,11 @@ export async function renderPRCountChart() {
           data: prCounts,
           backgroundColor: prCounts.map((count, i) => {
             if (count === Math.max(...prCounts)) {
-              return "rgba(34, 197, 94, 0.8)"; // Green for highest
+              return "rgba(34, 197, 94, 0.8)";
             } else if (count === 0) {
-              return "rgba(239, 68, 68, 0.5)"; // Red for zero
+              return "rgba(239, 68, 68, 0.5)";
             } else {
-              return "rgba(59, 130, 246, 0.7)"; // Blue for others
+              return "rgba(59, 130, 246, 0.7)";
             }
           }),
           borderColor: prCounts.map((count, i) => {
@@ -1001,8 +1056,8 @@ export async function renderPRCountChart() {
       plugins: {
         title: {
           display: true,
-          text: "Personal Records Achieved Per Month",
-          font: { size: 18, weight: "bold" },
+          text: "Personal Records Achieved Per Month (Number of PRs)",
+          font: { size: 14, weight: "bold" },
           color: "#ffffffff",
           padding: 20,
         },
@@ -1010,6 +1065,10 @@ export async function renderPRCountChart() {
           display: false,
         },
         tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
           callbacks: {
             label: function (context) {
               const count = context.raw;
@@ -1024,43 +1083,62 @@ export async function renderPRCountChart() {
           },
         },
       },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
+      },
       scales: {
         y: {
           beginAtZero: true,
           title: {
-            display: true,
-            text: "Number of PRs",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             color: "rgba(156, 163, 175, 0.2)",
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
             stepSize: 1,
           },
         },
         x: {
           title: {
-            display: true,
-            text: "Month",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: {
             display: false,
           },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
             maxRotation: 60,
             minRotation: 60,
           },
         },
       },
     },
+  });
+
+  prCountChart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = prCountChart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: true },
+      false
+    );
+    if (elements.length > 0) {
+      prCountChart.setActiveElements(elements);
+      prCountChart.update("none");
+    }
+  });
+
+  prCountChart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    prCountChart.setActiveElements([]);
+    prCountChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    prCountChart.update("none");
   });
 }
 
@@ -1120,7 +1198,7 @@ export async function renderMuscleGroupOverTimeChart() {
   const chartContainer = document.createElement("div");
   chartContainer.className = "chart-container";
   chartContainer.style.position = "relative";
-  chartContainer.style.height = "400px";
+  chartContainer.style.height = "460px";
   chartContainer.style.marginBottom = "2rem";
   chartContainer.style.width = "100%";
 
@@ -1139,7 +1217,7 @@ export async function renderMuscleGroupOverTimeChart() {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = true;
+    checkbox.checked = false;
     checkbox.value = muscleGroup;
 
     checkbox.addEventListener("change", () => {
@@ -1158,10 +1236,15 @@ export async function renderMuscleGroupOverTimeChart() {
 
   chartContainer.appendChild(checkboxContainer);
 
-  // Create chart canvas
+  const chartWrapper = document.createElement("div");
+  chartWrapper.style.height = "300px";
+  chartWrapper.style.width = "100%";
+  chartWrapper.style.position = "relative";
+
   const chartCanvas = document.createElement("canvas");
   chartCanvas.id = "chart-muscle-groups-over-time";
-  chartContainer.appendChild(chartCanvas);
+  chartWrapper.appendChild(chartCanvas);
+  chartContainer.appendChild(chartWrapper);
 
   const chartsContainer = document.getElementById("charts-container");
   chartsContainer.appendChild(chartContainer);
@@ -1172,7 +1255,7 @@ export async function renderMuscleGroupOverTimeChart() {
     type: "line",
     data: {
       labels: months,
-      datasets: createDatasets(allMuscleGroups),
+      datasets: createDatasets([]),
     },
     options: {
       responsive: true,
@@ -1180,8 +1263,8 @@ export async function renderMuscleGroupOverTimeChart() {
       plugins: {
         title: {
           display: true,
-          text: "Muscle Group Training Volume Over Time",
-          font: { size: 18, weight: "bold" },
+          text: "Muscle Groups Over Time (Sets)",
+          font: { size: 14, weight: "bold" },
           color: "#ffffffff",
           padding: 20,
         },
@@ -1189,13 +1272,19 @@ export async function renderMuscleGroupOverTimeChart() {
           display: true,
           labels: {
             color: "#ffffffff",
-            font: { size: 10 },
+            font: { size: 8 },
             usePointStyle: true,
             pointStyle: "line",
+            boxWidth: 10,
+            boxHeight: 2,
           },
           position: "top",
         },
         tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          position: "nearest",
           callbacks: {
             label: function (context) {
               return `${context.dataset.label}: ${context.raw} sets`;
@@ -1203,51 +1292,81 @@ export async function renderMuscleGroupOverTimeChart() {
           },
         },
       },
+      events: ["touchstart", "touchmove"],
+      onHover: function (event, activeElements) {
+        return;
+      },
       scales: {
         x: {
-          title: {
-            display: true,
-            text: "Month",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
-          },
+          display: false,
           grid: { display: false },
-          ticks: {
-            color: "#ffffffff",
-            font: { size: 10 },
-            maxRotation: 45,
-            minRotation: 45,
-          },
         },
         y: {
           beginAtZero: true,
           title: {
-            display: true,
-            text: "Number of Sets",
-            font: { size: 14, weight: "bold" },
-            color: "#f4f4f4ff",
+            display: false,
           },
           grid: { color: "rgba(156, 163, 175, 0.2)" },
           ticks: {
             color: "#ffffffff",
-            font: { size: 12 },
+            font: { size: 10 },
           },
         },
       },
       interaction: {
         intersect: false,
         mode: "index",
+        axis: "x",
       },
       elements: {
         point: {
-          radius: 3,
-          hoverRadius: 6,
-          borderWidth: 2,
+          radius: 1,
+          hoverRadius: 4,
+          borderWidth: 1,
         },
         line: {
-          borderWidth: 2,
+          borderWidth: 1.5,
         },
       },
     },
+  });
+
+  chart.canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const elements = chart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: false },
+      false
+    );
+    if (elements.length > 0) {
+      chart.setActiveElements(elements);
+      chart.update("none");
+    }
+  });
+
+  chart.canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    const elements = chart.getElementsAtEventForMode(
+      e,
+      "nearest",
+      { intersect: false },
+      false
+    );
+    if (elements.length > 0) {
+      chart.setActiveElements(elements);
+      chart.update("none");
+    }
+  });
+
+  chart.canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    chart.setActiveElements([]);
+    chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    chart.update("none");
+  });
+
+  chart.canvas.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
   });
 }

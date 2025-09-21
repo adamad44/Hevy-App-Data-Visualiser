@@ -391,9 +391,9 @@ export function getConsistencyHistoryData() {
   workouts.forEach((workout) => {
     const workoutDate = new Date(workout[0].start_time);
 
-    // Create a consistent key for each month (e.g., "July 2025").
+    // Create a consistent key for each month (e.g., "Jul 2025").
     const monthKey = workoutDate.toLocaleString("default", {
-      month: "long",
+      month: "short",
       year: "numeric",
     });
 
@@ -420,7 +420,7 @@ export function getSetCountsByMuscleGroupOverTime() {
 
   workouts.forEach((workout) => {
     const month = new Date(workout[0].start_time).toLocaleString("default", {
-      month: "long",
+      month: "short",
       year: "numeric",
     });
     if (!sortedWorkoutData.find((entry) => entry.month === month)) {
