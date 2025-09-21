@@ -74,7 +74,7 @@ export async function renderChart(
     i === maxIndex && timeFrame === "all" ? "#ef4444" : "#0b70ebff"
   );
 
-  new Chart(ctx, {
+  const newChart = new Chart(ctx, {
     type: "line",
     data: {
       labels: xData,
@@ -171,8 +171,15 @@ export async function renderChart(
         line: {
           borderWidth: 2,
         },
+        events: ["mousemove", "mouseout", "touchstart", "touchmove"],
       },
     },
+  });
+
+  newChart.canvas.addEventListener("touchend", () => {
+    newChart.setActiveElements([]);
+    newChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+    newChart.update();
   });
 }
 
